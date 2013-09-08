@@ -22,3 +22,6 @@ obj-$(CONFIG_MACH_VALENTE_WX) += valente_wx/
 
 # M7_WLJ
 obj-$(CONFIG_MACH_M7_WLJ) += m7wlj/
+
+# M4
+obj-$(CONFIG_MACH_M4_UL) += m4/
