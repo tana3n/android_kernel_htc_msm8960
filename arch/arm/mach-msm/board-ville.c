@@ -363,7 +363,7 @@ enum {
 
 #define MSM_PMEM_ADSP_SIZE         0x6D00000
 #define MSM_PMEM_ADSP2_SIZE        0x700000
-#define MSM_PMEM_AUDIO_SIZE        0x2B4000
+#define MSM_PMEM_AUDIO_SIZE        0x4CF000
 #ifdef CONFIG_MSM_IOMMU
 #define MSM_PMEM_SIZE 0x00000000 /* 0 Mbytes */
 #else
@@ -372,7 +372,7 @@ enum {
 #define MSM_LIQUID_PMEM_SIZE 0x4000000 /* 64 Mbytes */
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-#define MSM_PMEM_KERNEL_EBI1_SIZE  0x280000
+#define MSM_PMEM_KERNEL_EBI1_SIZE  0x65000
 #define MSM_ION_SF_SIZE		MSM_PMEM_SIZE
 #define MSM_ION_MM_FW_SIZE	0x200000 /* (2MB) */
 #ifdef CONFIG_MSM_IOMMU
@@ -387,9 +387,9 @@ enum {
 #else
 #define MSM_ION_MM_SIZE		MSM_PMEM_ADSP_SIZE - MSM_PMEM_ADSP2_SIZE
 #endif
-#define MSM_ION_ROTATOR_SIZE	MSM_PMEM_ADSP2_SIZE
 #define MSM_ION_QSECOM_SIZE	0x100000 /* (1MB) */
 #define MSM_ION_MFC_SIZE	0x100000  //SZ_8K
+#define MSM_ION_AUDIO_SIZE	MSM_PMEM_AUDIO_SIZE
 
 #ifdef CONFIG_MSM_IOMMU
 #define MSM_ION_HEAP_NUM	7
@@ -397,7 +397,6 @@ enum {
 #define MSM_ION_HEAP_NUM	8
 #endif
 #define MSM_LIQUID_ION_MM_SIZE (MSM_ION_MM_SIZE + 0x600000)
-static unsigned int msm_ion_cp_mm_size = MSM_ION_MM_SIZE;
 #else
 #define MSM_PMEM_KERNEL_EBI1_SIZE  0x110C000
 #define MSM_ION_HEAP_NUM	1
@@ -470,7 +469,6 @@ static struct platform_device android_pmem_adsp_device = {
 	.id = 2,
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
-#endif
 
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
 	.name = "pmem_audio",
@@ -484,6 +482,7 @@ static struct platform_device android_pmem_audio_device = {
 	.id = 4,
 	.dev = { .platform_data = &android_pmem_audio_pdata },
 };
+#endif
 #endif
 
 struct fmem_platform_data fmem_pdata = {
@@ -541,15 +540,19 @@ static void __init size_pmem_devices(void)
 	if (!pmem_param_set && machine_is_msm8960_liquid())
 		pmem_size = MSM_LIQUID_PMEM_SIZE;
 	android_pmem_pdata.size = pmem_size;
-#endif
 	android_pmem_audio_pdata.size = MSM_PMEM_AUDIO_SIZE;
+#endif
 #endif
 }
 
+#ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 static void __init reserve_memory_for(struct android_pmem_platform_data *p)
 {
 	msm8960_reserve_table[p->memory_type].size += p->size;
 }
+#endif
+#endif
 
 static void __init reserve_pmem_memory(void)
 {
@@ -557,14 +560,10 @@ static void __init reserve_pmem_memory(void)
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
-#endif
 	reserve_memory_for(&android_pmem_audio_pdata);
+#endif
 	msm8960_reserve_table[MEMTYPE_EBI1].size += pmem_kernel_ebi1_size;
 #endif
-}
-
-static void __init reserve_fmem_memory(void)
-{
 }
 
 static int msm8960_paddr_to_memtype(unsigned int paddr)
@@ -624,14 +623,6 @@ static struct ion_platform_data ion_pdata = {
 			.extra_data = (void *) &cp_mm_ion_pdata,
 		},
 		{
-			.id	= ION_CP_ROTATOR_HEAP_ID,
-			.type	= ION_HEAP_TYPE_CP,
-			.name	= ION_ROTATOR_HEAP_NAME,
-			.size	= MSM_ION_ROTATOR_SIZE,
-			.memory_type = ION_EBI_TYPE,
-			.extra_data = (void *) &cp_mm_ion_pdata,
-		},
-		{
 			.id	= ION_MM_FIRMWARE_HEAP_ID,
 			.type	= ION_HEAP_TYPE_CARVEOUT,
 			.name	= ION_MM_FIRMWARE_HEAP_NAME,
@@ -670,6 +661,14 @@ static struct ion_platform_data ion_pdata = {
 			.memory_type = ION_EBI_TYPE,
 			.extra_data = (void *) &co_ion_pdata,
 		},
+		{
+			.id	= ION_AUDIO_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_AUDIO_HEAP_NAME,
+			.size	= MSM_ION_AUDIO_SIZE,
+			.memory_type = ION_EBI_TYPE,
+			.extra_data = (void *) &co_ion_pdata,
+		},
 #endif
 	}
 };
@@ -687,32 +686,106 @@ struct platform_device fmem_device = {
 	.dev = { .platform_data = &fmem_pdata },
 };
 
+static void __init adjust_mem_for_liquid(void)
+{
+}
+
+static void __init reserve_mem_for_ion(enum ion_memory_types mem_type,
+					unsigned long size)
+{
+	msm8960_reserve_table[mem_type].size += size;
+}
+
+static __init const struct ion_platform_heap *find_ion_heap(int heap_id)
+{
+	unsigned int i;
+	for (i = 0; i < ion_pdata.nr; ++i) {
+		const struct ion_platform_heap *heap = &(ion_pdata.heaps[i]);
+		if (heap->id == heap_id)
+			return (const struct ion_platform_heap *) heap;
+	}
+	return 0;
+}
+
+/**
+ * Reserve memory for ION and calculate amount of reusable memory for fmem.
+ * We only reserve memory for heaps that are not reusable. However, we only
+ * support one reusable heap at the moment so we ignore the reusable flag for
+ * other than the first heap with reusable flag set. Also handle special case
+ * for adjacent heap when the adjacent heap is adjacent to a reusable heap.
+ */
 static void reserve_ion_memory(void)
 {
 #if defined(CONFIG_ION_MSM) && defined(CONFIG_MSM_MULTIMEDIA_USE_ION)
 	unsigned int i;
+	unsigned int reusable_count = 0;
 
-	if (!pmem_param_set && machine_is_msm8960_liquid()) {
-		msm_ion_cp_mm_size = MSM_LIQUID_ION_MM_SIZE;
-		for (i = 0; i < ion_pdata.nr; i++) {
-			if (ion_pdata.heaps[i].id == ION_CP_MM_HEAP_ID) {
-				ion_pdata.heaps[i].size = msm_ion_cp_mm_size;
-				pr_debug("msm_ion_cp_mm_size 0x%x\n",
-					msm_ion_cp_mm_size);
-				break;
+	adjust_mem_for_liquid();
+	fmem_pdata.size = 0;
+	fmem_pdata.reserved_size = 0;
+
+	/* We only support 1 reusable heap. Check if more than one heap
+	 * is specified as reusable and set as non-reusable if found.
+	 */
+	for (i = 0; i < ion_pdata.nr; ++i) {
+		const struct ion_platform_heap *heap = &(ion_pdata.heaps[i]);
+
+		if (heap->type == ION_HEAP_TYPE_CP && heap->extra_data) {
+			struct ion_cp_heap_pdata *data = heap->extra_data;
+
+			reusable_count += (data->reusable) ? 1 : 0;
+
+			if (data->reusable && reusable_count > 1) {
+				pr_err("%s: Too many heaps specified as "
+					"reusable. Heap %s was not configured "
+					"as reusable.\n", __func__, heap->name);
+				data->reusable = 0;
 			}
 		}
 	}
-	msm8960_reserve_table[MEMTYPE_EBI1].size += msm_ion_cp_mm_size;
-	msm8960_reserve_table[MEMTYPE_EBI1].size += MSM_ION_ROTATOR_SIZE;
-	msm8960_reserve_table[MEMTYPE_EBI1].size += MSM_ION_MM_FW_SIZE;
-	msm8960_reserve_table[MEMTYPE_EBI1].size += MSM_ION_SF_SIZE;
-	msm8960_reserve_table[MEMTYPE_EBI1].size += MSM_ION_MFC_SIZE;
-	msm8960_reserve_table[MEMTYPE_EBI1].size += MSM_ION_QSECOM_SIZE;
+
+	for (i = 0; i < ion_pdata.nr; ++i) {
+		int reusable = 0;
+		int adjacent_heap_id = INVALID_HEAP_ID;
+		int adj_reusable = 0;
+		const struct ion_platform_heap *heap = &(ion_pdata.heaps[i]);
+
+		if (heap->extra_data) {
+			switch (heap->type) {
+			case ION_HEAP_TYPE_CP:
+				reusable = ((struct ion_cp_heap_pdata *)
+						heap->extra_data)->reusable;
+				break;
+			case ION_HEAP_TYPE_CARVEOUT:
+				adjacent_heap_id = ((struct ion_co_heap_pdata *)
+					heap->extra_data)->adjacent_mem_id;
+				break;
+			default:
+				break;
+			}
+		}
+
+		if (adjacent_heap_id != INVALID_HEAP_ID) {
+			const struct ion_platform_heap *adj_heap =
+						find_ion_heap(adjacent_heap_id);
+			if (adj_heap) {
+				adj_reusable = ((struct ion_cp_heap_pdata *)
+						adj_heap->extra_data)->reusable;
+				if (adj_reusable)
+					fmem_pdata.reserved_size += heap->size;
+			}
+		}
+
+		if (!reusable && !adj_reusable)
+			reserve_mem_for_ion(MEMTYPE_EBI1, heap->size);
+		else
+			fmem_pdata.size += heap->size;
+	}
 #endif
 }
 
 void __init msm8960_mdp_writeback(struct memtype_reserve* reserve_table);
+
 static void __init reserve_mdp_memory(void)
 {
 	msm8960_mdp_writeback(msm8960_reserve_table);
@@ -760,7 +833,6 @@ static void __init msm8960_calculate_reserve_sizes(void)
 	size_pmem_devices();
 	reserve_pmem_memory();
 	reserve_ion_memory();
-	reserve_fmem_memory();
 	reserve_mdp_memory();
 	reserve_rtb_memory();
 	reserve_cache_dump_memory();
@@ -2965,6 +3037,7 @@ static void __init msm_fb_add_devices(void)
 #ifdef CONFIG_MSM_BUS_SCALING
 	msm_fb_register_device("dtv", &dtv_pdata);
 #endif
+	pr_info("%s: panel type is: 0x%x\n", __func__, panel_type);
 }
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
@@ -4160,63 +4233,29 @@ static struct usb_mass_storage_platform_data mass_storage_pdata = {
 #ifdef CONFIG_USB_MSM_OTG_72K
 static struct msm_otg_platform_data msm_otg_pdata;
 #else
-#define USB_5V_EN		42
+#define USB_5V_EN		VILLE_GPIO_V_BOOST_5V_EN
+
+static uint32_t USB_5V_EN_pin_ouput_table[] = {
+	GPIO_CFG(USB_5V_EN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+};
+
 static void msm_hsusb_vbus_power(bool on)
 {
-	int rc;
-	static bool vbus_is_on;
-	static struct regulator *mvs_otg_switch;
-	struct pm_gpio param = {
-		.direction	= PM_GPIO_DIR_OUT,
-		.output_buffer	= PM_GPIO_OUT_BUF_CMOS,
-		.output_value	= 1,
-		.pull		= PM_GPIO_PULL_NO,
-		.vin_sel	= PM_GPIO_VIN_S4,
-		.out_strength	= PM_GPIO_STRENGTH_MED,
-		.function	= PM_GPIO_FUNC_NORMAL,
-	};
+	static bool vbus_is_on = false;
 
 	if (vbus_is_on == on)
 		return;
 
-	printk(KERN_INFO "%s: %d\n", __func__, on);
+	gpio_tlmm_config(USB_5V_EN_pin_ouput_table[0], GPIO_CFG_ENABLE);
 
 	if (on) {
-		mvs_otg_switch = regulator_get(&msm8960_device_otg.dev,
-					       "vbus_otg");
-		if (IS_ERR(mvs_otg_switch)) {
-			pr_err("Unable to get mvs_otg_switch\n");
-			return;
-		}
-
-		rc = gpio_request(PM8921_GPIO_PM_TO_SYS(USB_5V_EN),
-						"usb_5v_en");
-		if (rc < 0) {
-			pr_err("failed to request usb_5v_en gpio\n");
-			goto put_mvs_otg;
-		}
-
-		if (regulator_enable(mvs_otg_switch)) {
-			pr_err("unable to enable mvs_otg_switch\n");
-			goto free_usb_5v_en;
-		}
-
-		rc = pm8xxx_gpio_config(PM8921_GPIO_PM_TO_SYS(USB_5V_EN),
-				&param);
-		if (rc < 0) {
-			pr_err("failed to configure usb_5v_en gpio\n");
-			goto disable_mvs_otg;
-		}
-		vbus_is_on = true;
-		return;
+		gpio_set_value(USB_5V_EN, 1);
+		pr_info("[USB] %s: Enable 5V power\n",  __func__);
+	} else {
+		gpio_set_value(USB_5V_EN, 0);
+		pr_info("[USB] %s: Disable 5V power\n",  __func__);
 	}
-disable_mvs_otg:
-		regulator_disable(mvs_otg_switch);
-free_usb_5v_en:
-		gpio_free(PM8921_GPIO_PM_TO_SYS(USB_5V_EN));
-put_mvs_otg:
-		regulator_put(mvs_otg_switch);
-		vbus_is_on = false;
+	vbus_is_on = on;
 }
 
 static int phy_init_seq_v3[] = { 0x7f, 0x81, 0x3c, 0x82, -1};
@@ -4783,8 +4822,8 @@ static struct platform_device *common_devices[] __initdata = {
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-#endif
 	&android_pmem_audio_device,
+#endif
 #endif
 	&msm_fb_device,
 	&msm_device_vidc,
