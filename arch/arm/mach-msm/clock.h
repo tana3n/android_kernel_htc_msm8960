@@ -17,6 +17,8 @@
 
 #include <linux/clkdev.h>
 
+#define CLKFLAG_IGNORE                  0x10000000
+
 /**
  * struct clock_init_data - SoC specific clock initialization data
  * @table: table of lookups to add
@@ -33,8 +35,11 @@ struct clock_init_data {
 	int (*late_init)(void);
 };
 
+extern void clk_ignor_list_add(const char *dev_id, const char *con_id, struct clock_init_data *msm_clock_init_data);
+
 extern struct clock_init_data msm9615_clock_init_data;
 extern struct clock_init_data apq8064_clock_init_data;
+extern struct clock_init_data apq8064_clock_init_data_r2;
 extern struct clock_init_data fsm9xxx_clock_init_data;
 extern struct clock_init_data msm7x01a_clock_init_data;
 extern struct clock_init_data msm7x27_clock_init_data;
