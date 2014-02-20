@@ -125,6 +125,39 @@
 #include <mach/perflock.h>
 #endif
 
+#ifdef CONFIG_FELICA_DD
+#include <linux/platform_device.h>
+#include <linux/felica.h>
+#endif
+
+#define PM8XXX_GPIO_INIT(_gpio, _dir, _buf, _val, _pull, _vin, _out_strength, \
+			_func, _inv, _disable) \
+{ \
+	.gpio	= PM8921_GPIO_PM_TO_SYS(_gpio), \
+	.config	= { \
+		.direction	= _dir, \
+		.output_buffer	= _buf, \
+		.output_value	= _val, \
+		.pull		= _pull, \
+		.vin_sel	= _vin, \
+		.out_strength	= _out_strength, \
+		.function	= _func, \
+		.inv_int_pol	= _inv, \
+		.disable_pin	= _disable, \
+	} \
+}
+
+struct pm8xxx_gpio_init {
+	unsigned			gpio;
+	struct pm_gpio			config;
+};
+
+#define PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(_gpio, _val) \
+	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_OUT, PM_GPIO_OUT_BUF_CMOS, _val, \
+			PM_GPIO_PULL_NO, PM_GPIO_VIN_L17, \
+			PM_GPIO_STRENGTH_HIGH, \
+			PM_GPIO_FUNC_NORMAL, 0, 0)
+
 extern unsigned int engineerid; // bit 0
 
 #define HW_VER_ID_VIRT		(MSM_TLMM_BASE + 0x00002054)
@@ -1584,6 +1617,95 @@ static struct i2c_board_info msm_i2c_gsbi5_info[] = {
 		.irq = MSM_GPIO_TO_INT(PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_SENSOR_INTz)),
 	},
 };
+
+#ifdef CONFIG_FELICA_DD
+static struct pm8xxx_gpio_init felica_dtyped_pmgpios[] = {
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_CEN, 0),
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_CEN, 1),
+};
+
+static struct pm8xxx_gpio_init felica_dtypecp_pmgpios[] = {
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_LOCK, 0),
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_LOCK, 1),
+};
+
+static void valente_wx_felica_dtype_suspend(void)
+{
+	pm8xxx_gpio_config(felica_dtyped_pmgpios[1].gpio, &felica_dtyped_pmgpios[1].config);
+	pm8xxx_gpio_config(felica_dtypecp_pmgpios[0].gpio, &felica_dtypecp_pmgpios[0].config);
+
+	return;
+}
+
+static void valente_wx_felica_suspend(void)
+{
+	printk(KERN_INFO "[FELICA_DD] %s START\n", __func__);
+	valente_wx_felica_dtype_suspend();
+	printk(KERN_INFO "[FELICA_DD] %s END\n", __func__);
+
+	return;
+}
+
+static void valente_wx_felica_resume(void)
+{
+	printk(KERN_INFO "[FELICA_DD] %s START\n", __func__);
+	printk(KERN_INFO "[FELICA_DD] %s END\n", __func__);
+
+	return;
+}
+
+static uint32_t felica_gpio_table[] = {
+	GPIO_CFG(VALENTE_WX_FEL_PON, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_FEL_CEN, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_FEL_RFS, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_FEL_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_FEL_CON, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_FEL_RX, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_FEL_TX, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+};
+
+static void valente_wx_felica_setup_gpio(void)
+{
+	printk(KERN_INFO "[FELICA_DD] %s START\n", __func__);
+	gpio_tlmm_config(felica_gpio_table[0], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(felica_gpio_table[1], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(felica_gpio_table[2], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(felica_gpio_table[3], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(felica_gpio_table[4], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(felica_gpio_table[5], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(felica_gpio_table[6], GPIO_CFG_ENABLE);
+	printk(KERN_INFO "[FELICA_DD] %s END\n", __func__);
+
+	return;
+}
+
+static struct felica_platform_data valente_wx_felica_data = {
+	.pon_gpio = VALENTE_WX_FEL_PON,
+	.cen_dtyp_d = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_FELICA_CEN),
+	.cen_dtyp_cp = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_FELICA_LOCK),
+	.cen_gpio = VALENTE_WX_FEL_CEN,
+	.rfs_gpio = VALENTE_WX_FEL_RFS,
+	.int_gpio = VALENTE_WX_FEL_INT,
+	.con_gpio = VALENTE_WX_FEL_CON,
+	.setup_gpio = valente_wx_felica_setup_gpio,
+	.sleep_gpio = valente_wx_felica_suspend,
+	.wakeup_gpio = valente_wx_felica_resume,
+};
+
+static struct platform_device valente_wx_felica_device = {
+	.name = "felica",
+	.id = 0,
+	.dev		= {
+		.platform_data	= &valente_wx_felica_data,
+	},
+};
+
+int __init valente_wx_init_felica(void)
+{
+	printk(KERN_INFO "[FELICA_DD] %s\n", __func__);
+	return platform_device_register(&valente_wx_felica_device);
+}
+#endif
 
 static void config_gpio_table(uint32_t *table, int len)
 {
@@ -3618,6 +3740,11 @@ static void __init valente_wx_init(void)
 		valente_wx_add_usb_devices();
 
 	valente_wx_init_keypad();
+
+#ifdef CONFIG_FELICA_DD
+	valente_wx_init_felica();
+#endif
+
 	hw_ver_id = readl(HW_VER_ID_VIRT);
 	printk(KERN_INFO "hw_ver_id = %x\n", hw_ver_id);
 }
