@@ -160,6 +160,79 @@ static struct msm_gpiomux_config wcnss_5wire_interface[] = {
 	},
 };
 
+#ifdef CONFIG_FELICA_DD
+static struct gpiomux_setting felica_settings[] = {
+	[0]={
+		.func = GPIOMUX_FUNC_GPIO,	/* 0 : O(L) NP 2MA*/
+		.drv  = GPIOMUX_DRV_2MA,	/* 2MA */
+		.pull = GPIOMUX_PULL_NONE,	/* NP */
+		.dir  = GPIOMUX_OUT_LOW,	/* output */
+	},
+	[1]={
+		.func = GPIOMUX_FUNC_GPIO,	/* 1: O(H) NP 2MA*/
+		.drv  = GPIOMUX_DRV_2MA,	/* 2MA */
+		.pull = GPIOMUX_PULL_NONE,	/* NP */
+		.dir  = GPIOMUX_OUT_HIGH,	/* output */
+	},
+	[2]={
+		.func = GPIOMUX_FUNC_GPIO,	/* 2: I(PD) 2MA*/
+		.drv  = GPIOMUX_DRV_2MA,	/* 2MA */
+		.pull = GPIOMUX_PULL_DOWN,	/* PD */
+		.dir  = GPIOMUX_IN, 		/* input */
+	},
+	[3]={
+		.func = GPIOMUX_FUNC_GPIO,	/* 3: I(PU) 2MA*/
+		.drv  = GPIOMUX_DRV_2MA,	/* 2MA */
+		.pull = GPIOMUX_PULL_UP,	/* PU */
+		.dir  = GPIOMUX_IN, 		/* input */
+	},
+	[4]={
+		.func = GPIOMUX_FUNC_GPIO,	/* 4: I(NP) 2MA*/
+		.drv  = GPIOMUX_DRV_2MA,	/* 2MA */
+		.pull = GPIOMUX_PULL_NONE,	/* NP */
+		.dir  = GPIOMUX_IN, 		/* input */
+	},
+};
+
+static struct msm_gpiomux_config valente_wx_felica_configs[] = {
+	{
+		.gpio = VALENTE_WX_FEL_PON,  /* PON (GPIO-25), output */
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &felica_settings[1],	/* 1: O(H) NP 2MA*/
+			[GPIOMUX_SUSPENDED] = &felica_settings[0],	/* 0 : O(L) NP 2MA*/
+		},
+	},
+	{
+		.gpio = VALENTE_WX_FEL_RFS, /* RFS (GPIO-10), input */
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &felica_settings[3],	/* 3: I(PU) 2MA*/
+			[GPIOMUX_SUSPENDED] = &felica_settings[3],	/* 3: I(PU) 2MA*/
+		},
+	},
+	{
+		.gpio = VALENTE_WX_FEL_INT, /* INT (GPIO-24), input */
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &felica_settings[4],	/* 4: I(NP) 2MA*/
+			[GPIOMUX_SUSPENDED] = &felica_settings[4],	/* 4: I(NP) 2MA*/
+		},
+	},
+	{
+		.gpio = VALENTE_WX_FEL_CON,  /* CON (GPIO-13), input */
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &felica_settings[2],	/* 2: I(PD) 2MA*/
+			[GPIOMUX_SUSPENDED] = &felica_settings[2],	/* 2: I(PD) 2MA*/
+		},
+	},
+	{
+		.gpio = VALENTE_WX_FEL_CEN,  /* CEN (GPIO-12), output */
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &felica_settings[3],	/* 3: I(PU) 2MA*/
+			[GPIOMUX_SUSPENDED] = &felica_settings[3],	/* 3: I(PU) 2MA*/
+		},
+	},
+};
+#endif	/* #ifdef CONFIG_FELICA_DD */
+
 static struct gpiomux_setting mdp_vsync_suspend_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
@@ -346,6 +419,10 @@ int __init valente_wx_gpiomux_init(void)
 	msm_gpiomux_install(cable_detect_usbid_config,
 			ARRAY_SIZE(cable_detect_usbid_config));
 
+#ifdef CONFIG_FELICA_DD
+	msm_gpiomux_install(valente_wx_felica_configs,
+			ARRAY_SIZE(valente_wx_felica_configs));
+#endif	/* #ifdef CONFIG_FELICA_DD */
 	return 0;
 }
 

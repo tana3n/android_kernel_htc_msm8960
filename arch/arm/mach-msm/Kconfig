@@ -1230,6 +1230,16 @@ config HTC_HEADSET
 	 headset, on the trout platform. Can be used with the msm serial
 	 debugger, but not with serial console.
 
+config GSBI4_UARTDM
+        tristate "GSBI4 as UARTDM support"
+        help
+          Say Y here if you want to support felica feature...
+
+config GSBI5_UARTDM
+	tristate "GSBI5 as UARTDM support"
+	help
+	  Say Y here if you want to support felica feature...
+
 config TROUT_BATTCHG
 	depends on MACH_TROUT && POWER_SUPPLY
 	default y

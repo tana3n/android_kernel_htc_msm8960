@@ -64,6 +64,12 @@
 #endif
 
 
+#define DMOV_HSUART_GSBI5_TX_CHAN       6
+#define DMOV_HSUART_GSBI5_TX_CRCI       10
+
+#define DMOV_HSUART_GSBI5_RX_CHAN       5
+#define DMOV_HSUART_GSBI5_RX_CRCI       9
+
 /* Address of GSBI blocks */
 #define MSM_GSBI1_PHYS		0x16000000
 #define MSM_GSBI2_PHYS		0x16100000
@@ -299,6 +305,104 @@ struct platform_device msm8960_device_uart_gsbi2 = {
 	.num_resources	= ARRAY_SIZE(resources_uart_gsbi2),
 	.resource	= resources_uart_gsbi2,
 };
+
+#ifdef CONFIG_GSBI4_UARTDM
+static struct resource msm_uart_dm4_resources[] = {
+	{
+		.start	= MSM_UART4DM_PHYS,
+		.end	= MSM_UART4DM_PHYS + PAGE_SIZE - 1,
+		.name	= "uartdm_resource",
+		.flags	= IORESOURCE_MEM,
+	},
+	{
+		.start	= GSBI4_UARTDM_IRQ,
+		.end	= GSBI4_UARTDM_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+	{
+		.start	= MSM_GSBI4_PHYS,
+		.end	= MSM_GSBI4_PHYS + 4 - 1,
+		.name	= "gsbi_resource",
+		.flags	= IORESOURCE_MEM,
+	},
+	{
+		.start	= DMOV_HSUART_GSBI4_TX_CHAN,
+		.end	= DMOV_HSUART_GSBI4_RX_CHAN,
+		.name	= "uartdm_channels",
+		.flags	= IORESOURCE_DMA,
+	},
+	{
+		.start	= DMOV_HSUART_GSBI4_TX_CRCI,
+		.end	= DMOV_HSUART_GSBI4_RX_CRCI,
+		.name	= "uartdm_crci",
+		.flags	= IORESOURCE_DMA,
+	},
+};
+static u64 msm_uart_dm4_dma_mask = DMA_BIT_MASK(32);
+
+struct platform_device msm_device_uart_dm4 = {
+	.name	= "msm_serial_hs",
+	.id	= 1,
+	.num_resources	= ARRAY_SIZE(msm_uart_dm4_resources),
+	.resource	= msm_uart_dm4_resources,
+	.dev	= {
+		.dma_mask		= &msm_uart_dm4_dma_mask,
+		.coherent_dma_mask	= DMA_BIT_MASK(32),
+	},
+};
+#endif
+
+#ifdef CONFIG_GSBI5_UARTDM
+/* For FeliCa, GSBI 5 used into UARTDM Mode */
+static struct resource msm_uart_dm5_resources[] = {
+	{
+		.start	= MSM_UART5DM_PHYS,
+		.end	= MSM_UART5DM_PHYS + PAGE_SIZE - 1,
+		.name	= "uartdm_resource",
+		.flags	= IORESOURCE_MEM,
+	},
+	{
+		.start	= GSBI5_UARTDM_IRQ,
+		.end	= GSBI5_UARTDM_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+	{
+		.start	= MSM_GSBI5_PHYS,
+		.end	= MSM_GSBI5_PHYS + 4 - 1,
+		.name	= "gsbi_resource",
+		.flags	= IORESOURCE_MEM,
+	},
+	{
+		.start	= DMOV_HSUART_GSBI5_TX_CHAN,
+		.end	= DMOV_HSUART_GSBI5_RX_CHAN,
+		.name	= "uartdm_channels",
+		.flags	= IORESOURCE_DMA,
+	},
+	{
+		.start	= DMOV_HSUART_GSBI5_TX_CRCI,
+		.end	= DMOV_HSUART_GSBI5_RX_CRCI,
+		.name	= "uartdm_crci",
+		.flags	= IORESOURCE_DMA,
+	},
+};
+static u64 msm_uart_dm5_dma_mask = DMA_BIT_MASK(32);
+
+struct platform_device msm_device_uart_dm5 = {
+#ifdef CONFIG_SERIAL_MSM_HS_IMC
+	.name	= "msm_serial_hs_imc",
+#else
+	.name	= "msm_serial_hs",
+#endif
+	.id	= 1,
+	.num_resources	= ARRAY_SIZE(msm_uart_dm5_resources),
+	.resource	= msm_uart_dm5_resources,
+	.dev	= {
+		.dma_mask		= &msm_uart_dm5_dma_mask,
+		.coherent_dma_mask	= DMA_BIT_MASK(32),
+	},
+};
+#endif //CONFIG_FELICA_UARTDM
+
 /* GSBI 6 used into UARTDM Mode */
 static struct resource msm_uart_dm6_resources[] = {
 	{
