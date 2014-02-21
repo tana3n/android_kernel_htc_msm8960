@@ -5697,14 +5697,26 @@ static struct clk_lookup msm_clocks_8960_common[] __initdata = {
 	CLK_LOOKUP("core_clk",		gsbi2_uart_clk.c,	""),
 	CLK_LOOKUP("core_clk",		gsbi3_uart_clk.c,	""),
 	CLK_LOOKUP("core_clk",		gsbi4_uart_clk.c,	""),
-	CLK_LOOKUP("core_clk",		gsbi5_uart_clk.c, "msm_serial_hsl.0"),
+#ifdef CONFIG_GSBI5_UARTDM
+#ifdef CONFIG_SERIAL_MSM_HS_IMC
+	CLK_LOOKUP("core_clk",		gsbi5_uart_clk.c, "msm_serial_hs_imc.1"),
+#else
+	CLK_LOOKUP("core_clk",		gsbi5_uart_clk.c, "msm_serial_hs.1"),
+#endif
+#else
+        CLK_LOOKUP("core_clk",          gsbi5_uart_clk.c, "msm_serial_hsl.0"),
+#endif
 	CLK_LOOKUP("core_clk",		gsbi6_uart_clk.c, "msm_serial_hs.0"),
 	CLK_LOOKUP("core_clk",		gsbi7_uart_clk.c,	""),
 	/* used on 8960 SGLTE for console */
 	CLK_LOOKUP("core_clk",		gsbi8_uart_clk.c, "msm_serial_hsl.1"),
 	/* used on 8960 standalone with Atheros Bluetooth */
 	CLK_LOOKUP("core_clk",		gsbi8_uart_clk.c, "msm_serial_hs.2"),
+#ifdef CONFIG_GSBI5_UARTDM
+	CLK_LOOKUP("core_clk",          gsbi9_uart_clk.c, ""),
+#else
 	CLK_LOOKUP("core_clk",		gsbi9_uart_clk.c, "msm_serial_hs.1"),
+#endif
 	CLK_LOOKUP("core_clk",		gsbi10_uart_clk.c,	""),
 	CLK_LOOKUP("core_clk",		gsbi11_uart_clk.c,	""),
 	CLK_LOOKUP("core_clk",		gsbi12_uart_clk.c,	""),
@@ -5753,7 +5765,15 @@ static struct clk_lookup msm_clocks_8960_common[] __initdata = {
 	CLK_LOOKUP("iface_clk",		gsbi2_p_clk.c,		"qup_i2c.2"),
 	CLK_LOOKUP("iface_clk",		gsbi3_p_clk.c,		"qup_i2c.3"),
 	CLK_LOOKUP("iface_clk",		gsbi4_p_clk.c,		"qup_i2c.4"),
-	CLK_LOOKUP("iface_clk",		gsbi5_p_clk.c,	"qup_i2c.5"),
+#ifdef CONFIG_GSBI5_UARTDM
+#ifdef CONFIG_SERIAL_MSM_HS_IMC
+	CLK_LOOKUP("iface_clk",		gsbi5_p_clk.c, "msm_serial_hs_imc.1"),
+#else
+	CLK_LOOKUP("iface_clk",     gsbi5_p_clk.c,  "msm_serial_hs.1"),
+#endif
+#else
+	CLK_LOOKUP("iface_clk",		gsbi5_p_clk.c,		"qup_i2c.5"),
+#endif
 	CLK_LOOKUP("iface_clk",		gsbi6_p_clk.c,  "msm_serial_hs.0"),
 	CLK_LOOKUP("iface_clk",		gsbi7_p_clk.c,		""),
 	/* used on 8960 SGLTE for serial console */
@@ -5762,7 +5782,11 @@ static struct clk_lookup msm_clocks_8960_common[] __initdata = {
 	CLK_LOOKUP("iface_clk",		gsbi8_p_clk.c,  "qup_i2c.8"),
 	CLK_LOOKUP("iface_clk",		gsbi8_p_clk.c,	"msm_serial_hs.2"),
 	CLK_LOOKUP("iface_clk",		gsbi9_p_clk.c,  "qup_i2c.9"),
+#ifdef CONFIG_GSBI5_UARTDM
+        CLK_LOOKUP("iface_clk",         gsbi9_p_clk.c,  ""),
+#else
 	CLK_LOOKUP("iface_clk",		gsbi9_p_clk.c,  "msm_serial_hs.1"),
+#endif
 	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"spi_qsd.1"),
 	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"qup_i2c.10"),
 	CLK_LOOKUP("iface_clk",		gsbi11_p_clk.c,		""),
