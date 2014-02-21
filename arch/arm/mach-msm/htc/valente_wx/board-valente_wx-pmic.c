@@ -247,7 +247,7 @@ __setup("androidboot.dq=", check_dq_setup);
 static struct pm8xxx_vibrator_platform_data pm8xxx_vib_pdata = {
 	.initial_vibrate_ms = 0,
 	.max_timeout_ms = 15000,
-	.level_mV = 2500,
+	.level_mV = 3100,
 };
 
 static struct pm8xxx_gpio_init green_gpios[] = {
