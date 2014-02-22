@@ -2951,6 +2951,9 @@ static struct platform_device *common_devices[] __initdata = {
 #ifndef CONFIG_MSM_DSPS
 	&msm8960_device_qup_i2c_gsbi12,
 #endif
+#ifdef CONFIG_GSBI5_UARTDM
+	&msm_device_uart_dm5,
+#endif
 	&msm_slim_ctrl,
 	&msm_device_wcnss_wlan,
 #if defined(CONFIG_QSEECOM)
