@@ -5193,6 +5193,7 @@ static void __init m7wl_common_init(void)
 		rc = sysfs_create_group(properties_kobj,
 				&syn_properties_attr_group);
 	}
+#endif
 #if defined (CONFIG_FELICA_DD) || defined (CONFIG_FELICA_CXD2235_DD)
 	m7wl_j_init_felica();
 #endif
