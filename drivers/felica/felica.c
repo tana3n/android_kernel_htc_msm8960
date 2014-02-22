@@ -82,7 +82,7 @@ static struct file_operations fops_felica_uart = {
 	.release			= felica_uart_close,
 	.read				= felica_uart_read,
 	.write				= felica_uart_write,
-	.fsync				= felica_uart_sync,
+	.fsync				= 0,
 	.unlocked_ioctl		= felica_uart_ioctl,
 };
 
