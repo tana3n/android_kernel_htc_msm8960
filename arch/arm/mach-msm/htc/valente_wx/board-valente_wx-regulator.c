@@ -30,7 +30,6 @@ VREG_CONSUMERS(L1) = {
 VREG_CONSUMERS(L2) = {
 	REGULATOR_SUPPLY("8921_l2",		NULL),
 	REGULATOR_SUPPLY("dsi_vdda",		"mipi_dsi.1"),
-	REGULATOR_SUPPLY("dsi_pll_vdda",	"mdp.0"),
 	REGULATOR_SUPPLY("mipi_csi_vdd",	"msm_csiphy.0"),
 	REGULATOR_SUPPLY("mipi_csi_vdd",	"msm_csiphy.1"),
 	REGULATOR_SUPPLY("mipi_csi_vdd",	"msm_csiphy.2"),
@@ -116,7 +115,6 @@ VREG_CONSUMERS(L22) = {
 VREG_CONSUMERS(L23) = {
 	REGULATOR_SUPPLY("8921_l23",		NULL),
 	REGULATOR_SUPPLY("dsi_vddio",		"mipi_dsi.1"),
-	REGULATOR_SUPPLY("dsi_pll_vddio",	"mdp.0"),
 	REGULATOR_SUPPLY("hdmi_avdd",		"hdmi_msm.0"),
 	REGULATOR_SUPPLY("pll_vdd",		"pil_riva"),
 	REGULATOR_SUPPLY("pll_vdd",		"pil_qdsp6v4.1"),
@@ -160,7 +158,6 @@ VREG_CONSUMERS(S3) = {
 	REGULATOR_SUPPLY("8921_s3",		NULL),
 	REGULATOR_SUPPLY("HSUSB_VDDCX",		"msm_otg"),
 	REGULATOR_SUPPLY("riva_vddcx",		"wcnss_wlan.0"),
-	REGULATOR_SUPPLY("HSIC_VDDCX",		"msm_hsic_host"),
 };
 VREG_CONSUMERS(S4) = {
 	REGULATOR_SUPPLY("8921_s4",		NULL),
@@ -178,8 +175,6 @@ VREG_CONSUMERS(S4) = {
 	REGULATOR_SUPPLY("CDC_VDDA_TX",		"tabla2x-slim"),
 	REGULATOR_SUPPLY("CDC_VDDA_RX",		"tabla2x-slim"),
 	REGULATOR_SUPPLY("vcc_i2c",		"3-005b"),
-	REGULATOR_SUPPLY("EXT_HUB_VDDIO",	"msm_smsc_hub"),
-	REGULATOR_SUPPLY("vcc_i2c",		"10-0048"),
 };
 VREG_CONSUMERS(S5) = {
 	REGULATOR_SUPPLY("8921_s5",		NULL),
@@ -197,6 +192,7 @@ VREG_CONSUMERS(S8) = {
 };
 VREG_CONSUMERS(LVS1) = {
 	REGULATOR_SUPPLY("8921_lvs1",		NULL),
+	REGULATOR_SUPPLY("sdc_vdd",		"msm_sdcc.4"),
 	REGULATOR_SUPPLY("iris_vddio",		"wcnss_wlan.0"),
 };
 VREG_CONSUMERS(LVS2) = {
@@ -248,10 +244,6 @@ VREG_CONSUMERS(EXT_3P3V) = {
 	REGULATOR_SUPPLY("vdd_ana",		"3-005b"),
 	REGULATOR_SUPPLY("vdd_lvds_3p3v",	"mipi_dsi.1"),
 	REGULATOR_SUPPLY("mhl_ext_3p3v",	"msm_otg"),
-};
-VREG_CONSUMERS(EXT_OTG_SW) = {
-	REGULATOR_SUPPLY("ext_otg_sw",		NULL),
-	REGULATOR_SUPPLY("vbus_otg",		"msm_otg"),
 };
 
 #define PM8XXX_VREG_INIT(_id, _name, _min_uV, _max_uV, _modes, _ops, \
@@ -481,8 +473,6 @@ struct gpio_regulator_platform_data msm_gpio_regulator_pdata[] __devinitdata = {
 	GPIO_VREG(EXT_L2, "ext_l2", "ext_l2_en", 91, NULL),
 	GPIO_VREG(EXT_3P3V, "ext_3p3v", "ext_3p3v_en",
 		PM8921_GPIO_PM_TO_SYS(17), NULL),
-	GPIO_VREG(EXT_OTG_SW, "ext_otg_sw", "ext_otg_sw_en",
-		PM8921_GPIO_PM_TO_SYS(42), "8921_usb_otg"),
 };
 
 struct platform_device msm8960_device_ext_5v_vreg __devinitdata = {
@@ -525,7 +515,7 @@ msm_pm8921_regulator_pdata[] __devinitdata = {
 		0, 4),
 
 	/*	     ID        name      always_on pd en_t supply    reg_ID */
-	PM8XXX_VS300(USB_OTG,  "8921_usb_otg",  0, 0, 0,   "ext_5v", 5),
+	PM8XXX_VS300(USB_OTG,  "8921_usb_otg",  0, 1, 0,   "ext_5v", 5),
 	PM8XXX_VS300(HDMI_MVS, "8921_hdmi_mvs", 0, 1, 0,   "ext_5v", 6),
 };
 
@@ -536,7 +526,7 @@ msm_rpm_regulator_init_data[] __devinitdata = {
 	RPM_SMPS(S3, 0, 1, 1,  500000, 1150000, NULL, 100000, 4p80, NONE, NONE),
 	RPM_SMPS(S4, 1, 1, 0, 1800000, 1800000, NULL, 100000, 3p20, AUTO, AUTO),
 	RPM_SMPS(S7, 0, 1, 0, 1150000, 1150000, NULL, 100000, 3p20, NONE, NONE),
-	RPM_SMPS(S8, 1, 1, 1, 2050000, 2050000, NULL, 100000, 1p60, NONE, NONE),
+	RPM_SMPS(S8, 1, 1, 1, 2050000, 2100000, NULL, 100000, 1p60, NONE, NONE),
 
 	
 	RPM_LDO(L1,	 1, 1, 0, 1050000, 1050000, "8921_s4", 0, 10000),
@@ -546,15 +536,15 @@ msm_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L5,	 0, 1, 0, 2950000, 2950000, NULL,      0, 0),
 	RPM_LDO(L6,	 0, 1, 0, 2850000, 2950000, NULL,      0, 0),
 	RPM_LDO(L7,	 1, 1, 0, 1850000, 2950000, NULL,      10000, 10000),
-	RPM_LDO(L8,	 0, 1, 0, 2800000, 2800000, NULL,      0, 0),
+	RPM_LDO(L8,	 0, 1, 0, 2800000, 3000000, NULL,      0, 0),
 	RPM_LDO(L9,	 0, 1, 0, 2800000, 2800000, NULL,      0, 0),
 	RPM_LDO(L10,	 0, 1, 0, 3000000, 3000000, NULL,      0, 0),
-	RPM_LDO(L11,	 0, 1, 0, 3000000, 3200000, NULL,      0, 0), 
+	RPM_LDO(L11,	 0, 1, 0, 3000000, 3300000, NULL,      0, 0), 
 	RPM_LDO(L12,	 0, 1, 0, 1200000, 1500000, "8921_s4", 0, 0), 
 	RPM_LDO(L14,	 0, 1, 0, 1800000, 1800000, NULL,      0, 0),
 	RPM_LDO(L15,	 0, 1, 0, 1800000, 2950000, NULL,      0, 0),
 	RPM_LDO(L16,	 0, 1, 0, 2850000, 3300000, NULL,      0, 0), 
-	RPM_LDO(L17,	 0, 1, 0, 2850000, 2850000, NULL,      0, 0),
+	RPM_LDO(L17,	 0, 1, 0, 1800000, 2850000, NULL,      0, 0),
 	RPM_LDO(L18,	 0, 1, 0, 1300000, 1300000, "8921_s4", 0, 0),
 	RPM_LDO(L21,	 0, 1, 0, 1900000, 1900000, "8921_s8", 0, 0),
 	RPM_LDO(L22,	 0, 1, 0, 2800000, 2800000, NULL,      0, 0),

@@ -33,6 +33,12 @@ module_param_named(keycaps, keycaps, charp, 0);
 /* Direct Keys */
 
 static struct gpio_event_direct_entry valente_wx_keypad_map[] = {
+#if 0
+	{
+		.gpio = VALENTE_WX_GPIO_PWR_KEY_MSMz,
+		.code = KEY_POWER,
+	},
+#endif
 	{
 		.gpio = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_VOL_DOWNz),
 		.code = KEY_VOLUMEDOWN,

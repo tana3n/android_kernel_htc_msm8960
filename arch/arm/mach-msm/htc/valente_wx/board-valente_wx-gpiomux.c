@@ -14,14 +14,6 @@
 #include <mach/gpiomux.h>
 #include "board-valente_wx.h"
 
-#if 0  /* GSBI2 is not used for I2C */
-static struct gpiomux_setting gsbi2 = {
-	.func = GPIOMUX_FUNC_1,
-	.drv = GPIOMUX_DRV_8MA,
-	.pull = GPIOMUX_PULL_NONE,
-};
-#endif /* GSBI2 is not used for I2C */
-
 static struct gpiomux_setting gsbi3 = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
@@ -36,24 +28,7 @@ static struct gpiomux_setting gsbi4 = {
 };
 #endif
 
-#if 0
-static struct gpiomux_setting gsbi5 = {
-	.func = GPIOMUX_FUNC_1,
-	.drv  = GPIOMUX_DRV_8MA,
-	.pull = GPIOMUX_PULL_NONE,
-};
-#endif
-
-#if 0
-/* The SPI configurations apply to GSBI 10*/
-static struct gpiomux_setting gsbi10 = {
-	.func = GPIOMUX_FUNC_2,
-	.drv = GPIOMUX_DRV_4MA,
-	.pull = GPIOMUX_PULL_NONE,
-};
-#endif
-
-static struct gpiomux_setting gsbi12 = {
+static struct gpiomux_setting gsbi8 = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_NONE,
@@ -72,20 +47,6 @@ static struct gpiomux_setting slimbus = {
 };
 
 static struct msm_gpiomux_config valente_wx_gsbi_configs[] __initdata = {
-#if 0 /* GSBI2 is not used for I2C */
-	{
-		.gpio      = VALENTE_WX_GPIO_VP_I2C_DAT,	/* GSBI2 I2C QUP SDA */
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi2,
-		},
-	},
-	{
-		.gpio      = VALENTE_WX_GPIO_VP_I2C_CLK,	/* GSBI2 I2C QUP SCL */
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi2,
-		},
-	},
-#endif /* GSBI2 is not used for I2C */
 	{
 		.gpio      = VALENTE_WX_GPIO_TP_I2C_DAT,	/* GSBI3 I2C QUP SDA */
 		.settings = {
@@ -112,60 +73,16 @@ static struct msm_gpiomux_config valente_wx_gsbi_configs[] __initdata = {
 		},
 	},
 #endif
-#if 0
 	{
-		.gpio      = VALENTE_WX_GPIO_CAP_I2C_DAT,	/* GSBI5 I2C QUP SDA */
+		.gpio      = VALENTE_WX_GPIO_MC_I2C_DAT,	/* GSBI8 I2C QUP SDA */
 		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi5,
+			[GPIOMUX_SUSPENDED] = &gsbi8,
 		},
 	},
 	{
-		.gpio      = VALENTE_WX_GPIO_CAP_I2C_CLK,	/* GSBI5 I2C QUP SCL */
+		.gpio      = VALENTE_WX_GPIO_MC_I2C_CLK,	/* GSBI8 I2C QUP SCL */
 		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi5,
-		},
-	},
-#endif
-#if 0
-	{
-		/* GSBI10 SPI QUP VALENTE_WX_GPIO_MCAM_SPI_CLK */
-		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_CLK,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi10,
-		},
-	},
-	{
-		/* GSBI10 SPI QUP VALENTE_WX_GPIO_MCAM_SPI_CS0 */
-		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_CS0,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi10,
-		},
-	},
-	{
-		/* GSBI10 SPI QUP VALENTE_WX_GPIO_MCAM_SPI_DI */
-		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_DI,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi10,
-		},
-	},
-	{
-		/* GSBI10 SPI QUP VALENTE_WX_GPIO_MCAM_SPI_DO */
-		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_DO,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi10,
-		},
-	},
-#endif
-	{
-		.gpio      = VALENTE_WX_GPIO_SR_I2C_DAT,	/* GSBI12 I2C QUP SDA */
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi12,
-		},
-	},
-	{
-		.gpio      = VALENTE_WX_GPIO_SR_I2C_CLK,	/* GSBI12 I2C QUP SCL */
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gsbi12,
+			[GPIOMUX_SUSPENDED] = &gsbi8,
 		},
 	},
 };
@@ -195,13 +112,13 @@ static struct msm_gpiomux_config valente_wx_audio_codec_configs[] __initdata = {
 };
 static struct gpiomux_setting wcnss_5wire_suspend_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
-	.drv  = GPIOMUX_DRV_8MA,
+	.drv  = GPIOMUX_DRV_10MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
 
 static struct gpiomux_setting wcnss_5wire_active_cfg = {
 	.func = GPIOMUX_FUNC_1,
-	.drv  = GPIOMUX_DRV_8MA,
+	.drv  = GPIOMUX_DRV_10MA,
 	.pull = GPIOMUX_PULL_DOWN,
 };
 

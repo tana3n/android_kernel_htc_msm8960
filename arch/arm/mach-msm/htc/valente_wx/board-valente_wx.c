@@ -24,6 +24,7 @@
 #include <linux/mfd/pm8xxx/pm8921.h>
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
+#include <linux/mpu.h>
 #include <linux/slimbus/slimbus.h>
 #ifdef CONFIG_ANDROID_PMEM
 #include <linux/android_pmem.h>
@@ -1581,9 +1582,9 @@ int cy8c_cs_reset(void)
 	pr_info("[cap]%s Enter\n", __func__);
 
 	gpio_set_value_cansleep(PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST), 1);
-	hr_msleep(1);
+	hr_msleep(5);
 	gpio_set_value_cansleep(PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST), 0);
-
+	hr_msleep(50);
 	return 0;
 }
 
@@ -1593,7 +1594,6 @@ struct cy8c_i2c_cs_platform_data cs_cy8c_data[] = {
 		.gpio_rst = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST),
 		.reset    = cy8c_cs_reset,
 		.keycode  = {KEY_BACK, KEY_HOME, KEY_APP_SWITCH},
-		.func_support = CS_FUNC_PRINTRAW,
 		.id       = {
 			.config = CS_KEY_3,
 		},
@@ -1602,8 +1602,7 @@ struct cy8c_i2c_cs_platform_data cs_cy8c_data[] = {
 		.gpio_irq = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_SENSOR_INTz),
 		.gpio_rst = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST),
 		.reset    = cy8c_cs_reset,
-		.keycode  = {KEY_BACK, KEY_HOME, KEY_APP_SWITCH, KEY_WEIBO},
-		.func_support = CS_FUNC_PRINTRAW,
+		.keycode  = {KEY_HOME, KEY_APP_SWITCH, KEY_BACK, 0},
 		.id       = {
 			.config = CS_KEY_4,
 		},
@@ -1750,6 +1749,7 @@ static struct pana_gyro_platform_data pana_gyro_pdata = {
 };
 */
 
+#if 0
 static struct bma250_platform_data gsensor_bma250_platform_data = {
 	.intr = VALENTE_WX_GPIO_GSENSOR_INT,
 	.chip_layout = 1,
@@ -1779,7 +1779,45 @@ static struct i2c_board_info __initdata msm_i2c_sensor_gsbi12_info[] = {
 	},
   */
 };
+#else
+static struct mpu3050_platform_data mpu3050_data = {
+	.int_config = 0x10,
+	.orientation = { 1, 0, 0,
+			 0, 1, 0,
+			 0, 0, 1 },
+	.level_shifter = 0,
 
+	.accel = {
+		.get_slave_descr = get_accel_slave_descr,
+		.adapt_num = MSM_8960_GSBI12_QUP_I2C_BUS_ID, /* The i2c bus to which the mpu device is connected */
+		.bus = EXT_SLAVE_BUS_SECONDARY,
+		.address = 0x30 >> 1,
+			.orientation = { 1, 0, 0,
+					 0, 1, 0,
+					 0, 0, 1 },
+
+	},
+
+	.compass = {
+		.get_slave_descr = get_compass_slave_descr,
+		.adapt_num = MSM_8960_GSBI12_QUP_I2C_BUS_ID, /* The i2c bus to which the mpu device is connected */
+		.bus = EXT_SLAVE_BUS_PRIMARY,
+		.address = 0x1A >> 1,
+			.orientation = {  1, 0, 0,
+					  0, 1, 0,
+					  0, 0, 1 },
+	},
+};
+
+static struct i2c_board_info __initdata mpu3050_GSBI12_boardinfo[] = {
+	{
+		I2C_BOARD_INFO("mpu3050", 0xD0 >> 1),
+		.irq = MSM_GPIO_TO_INT(VALENTE_WX_GPIO_GYRO_INT),
+		.platform_data = &mpu3050_data,
+	},
+};
+#endif
+/*
 static struct cm3629_platform_data cm36282_TMO_EN1_pdata = {
 	.model = CAPELLA_CM36282,
 	.ps_select = CM3629_PS1_ONLY,
@@ -1887,22 +1925,22 @@ static struct i2c_board_info i2c_CM36282_XD_devices[] = {
 		.irq =  PM8921_GPIO_IRQ(PM8921_IRQ_BASE, VALENTE_WX_PMGPIO_PROXIMITY_INTz),
 	},
 };
-
+*/
 static struct cm3629_platform_data cm36282_pdata = {
 	.model = CAPELLA_CM36282,
 	.ps_select = CM3629_PS1_ONLY,
 	.intr = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	.levels = { 8, 10, 33, 259, 516, 4881, 8411, 13023, 23251, 65535},
-	.golden_adc = 5573,
+	.levels = { 0, 2, 0x64, 0x242, 0x869, 0x1b58, 0x29aa, 0x37fc, 0x4600, 0xffff},
+	.golden_adc = 0x17D4,
 	.power = NULL,
 	.cm3629_slave_address = 0xC0>>1,
-	.ps1_thd_set = 0x05,
+	.ps1_thd_set = 0xc,
 	.ps1_thd_no_cal = 0xF1,
-	.ps1_thd_with_cal = 0x05,
+	.ps1_thd_with_cal = 0xc,
 	.ps_calibration_rule = 1,
-	.ps_conf1_val = CM3629_PS_DR_1_80 | CM3629_PS_IT_2T |
+	.ps_conf1_val = CM3629_PS_DR_1_80 | CM3629_PS_IT_1_6T |
 			CM3629_PS1_PERS_1,
-	.ps_conf2_val = CM3629_PS_ITB_2 | CM3629_PS_ITR_1 |
+	.ps_conf2_val = CM3629_PS_ITB_1 | CM3629_PS_ITR_1 |
 			CM3629_PS2_INT_DIS | CM3629_PS1_INT_DIS,
 	.ps_conf3_val = CM3629_PS2_PROL_32,
 };
@@ -2754,20 +2792,6 @@ static uint32_t gsbi4_gpio_table_gpio[] = {
 	GPIO_CFG(VALENTE_WX_GPIO_CAM_I2C_CLK, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 };
 
-
-/* cap sensor*/
-/*
-static uint32_t gsbi5_gpio_table[] = {
-	GPIO_CFG(VALENTE_WX_GPIO_CAP_I2C_DAT, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
-	GPIO_CFG(VALENTE_WX_GPIO_CAP_I2C_CLK, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
-};
-
-static uint32_t gsbi5_gpio_table_gpio[] = {
-	GPIO_CFG(VALENTE_WX_GPIO_CAP_I2C_DAT, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
-	GPIO_CFG(VALENTE_WX_GPIO_CAP_I2C_CLK, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
-};
-*/
-
 static uint32_t gsbi8_gpio_table[] = {
 	GPIO_CFG(VALENTE_WX_GPIO_MC_I2C_DAT, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 	GPIO_CFG(VALENTE_WX_GPIO_MC_I2C_CLK, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
@@ -2846,20 +2870,14 @@ static void gsbi_qup_i2c_gpio_config(int adap_id, int config_type)
 	}
 }
 
-static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi4_pdata = {
-	.clk_freq = 400000,
-	.src_clk_rate = 24000000,
-	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
-};
-
 static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi3_pdata = {
 	.clk_freq = 400000,
 	.src_clk_rate = 24000000,
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
-static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi5_pdata = {
-	.clk_freq = 100000,
+static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi4_pdata = {
+	.clk_freq = 400000,
 	.src_clk_rate = 24000000,
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
@@ -3079,14 +3097,11 @@ static struct platform_device *valente_wx_devices[] __initdata = {
 
 static void __init msm8960_i2c_init(void)
 {
-	msm8960_device_qup_i2c_gsbi4.dev.platform_data =
-					&msm8960_i2c_qup_gsbi4_pdata;
-
 	msm8960_device_qup_i2c_gsbi3.dev.platform_data =
 					&msm8960_i2c_qup_gsbi3_pdata;
 
-	msm8960_device_qup_i2c_gsbi5.dev.platform_data =
-					&msm8960_i2c_qup_gsbi5_pdata;
+	msm8960_device_qup_i2c_gsbi4.dev.platform_data =
+					&msm8960_i2c_qup_gsbi4_pdata;
 
 	msm8960_device_qup_i2c_gsbi8.dev.platform_data =
 					&msm8960_i2c_qup_gsbi8_pdata;
@@ -3364,66 +3379,64 @@ static struct msm_rpmrs_level msm_rpmrs_levels[] = {
 		MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT,
 		MSM_RPMRS_LIMITS(ON, ACTIVE, MAX, ACTIVE),
 		true,
-		1, 784, 180000, 100,
+		100, 8000, 100000, 1,
 	},
-
-	{
-		MSM_PM_SLEEP_MODE_RETENTION,
-		MSM_RPMRS_LIMITS(ON, ACTIVE, MAX, ACTIVE),
-		true,
-		415, 715, 340827, 475,
-	},
-#ifdef CONFIG_MSM_STANDALONE_POWER_COLLAPSE
+#if 0
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE,
 		MSM_RPMRS_LIMITS(ON, ACTIVE, MAX, ACTIVE),
 		true,
-		1300, 228, 1200000, 2000,
+		2000, 6000, 60100000, 3000,
 	},
 #endif
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(ON, GDHS, MAX, ACTIVE),
 		false,
-		2000, 138, 1208400, 3200,
+		4600, 5000, 60350000, 3500,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
+		MSM_RPMRS_LIMITS(ON, HSFS_OPEN, MAX, ACTIVE),
+		false,
+		6700, 4500, 65350000, 4800,
+	},
+	{
+		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(ON, HSFS_OPEN, ACTIVE, RET_HIGH),
 		false,
-		6000, 119, 1850300, 9000,
+		7400, 3500, 66600000, 5150,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, GDHS, MAX, ACTIVE),
 		false,
-		9200, 68, 2839200, 16400,
+		12100, 2500, 67850000, 5500,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, HSFS_OPEN, MAX, ACTIVE),
 		false,
-		10300, 63, 3128000, 18200,
+		14200, 2000, 71850000, 6800,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, HSFS_OPEN, ACTIVE, RET_HIGH),
 		false,
-		18000, 10, 4602600, 27000,
+		30100, 500, 75850000, 8800,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, HSFS_OPEN, RET_HIGH, RET_LOW),
 		false,
-		20000, 2, 5752000, 32000,
+		30100, 0, 76350000, 9800,
 	},
 };
-
 
 static struct msm_rpmrs_platform_data msm_rpmrs_data __initdata = {
 	.levels = &msm_rpmrs_levels[0],
@@ -3471,12 +3484,14 @@ struct i2c_registry {
 };
 
 static struct i2c_registry msm8960_i2c_devices[] __initdata = {
+#ifdef CONFIG_FLASHLIGHT_TPS61310
 	{
 		I2C_SURF | I2C_FFA,
 		MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-		msm_i2c_sensor_gsbi12_info,
-		ARRAY_SIZE(msm_i2c_sensor_gsbi12_info),
+		i2c_tps61310_flashlight,
+		ARRAY_SIZE(i2c_tps61310_flashlight),
 	},
+#endif
 #ifdef CONFIG_FB_MSM_HDMI_MHL
 #ifdef CONFIG_FB_MSM_HDMI_MHL_SII9234
 	{
@@ -3487,14 +3502,6 @@ static struct i2c_registry msm8960_i2c_devices[] __initdata = {
 	},
 #endif
 #endif
-#ifdef CONFIG_FLASHLIGHT_TPS61310
-	{
-		I2C_SURF | I2C_FFA,
-		MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-		i2c_tps61310_flashlight,
-		ARRAY_SIZE(i2c_tps61310_flashlight),
-	},
-#endif
 	{
 		I2C_SURF | I2C_FFA,
 		MSM_8960_GSBI3_QUP_I2C_BUS_ID,
@@ -3503,7 +3510,13 @@ static struct i2c_registry msm8960_i2c_devices[] __initdata = {
 	},
 	{
 		I2C_SURF | I2C_FFA,
-		MSM_8960_GSBI5_QUP_I2C_BUS_ID,
+		MSM_8960_GSBI12_QUP_I2C_BUS_ID,
+		i2c_CM36282_devices,
+		ARRAY_SIZE(i2c_CM36282_devices),
+	},
+	{
+		I2C_SURF | I2C_FFA,
+		MSM_8960_GSBI12_QUP_I2C_BUS_ID,
 		msm_i2c_gsbi5_info,
 		ARRAY_SIZE(msm_i2c_gsbi5_info),
 	},
@@ -3516,15 +3529,6 @@ static void __init register_i2c_devices(void)
 	u8 mach_mask = 0;
 	int i;
 
-#ifdef CONFIG_MSM_CAMERA
-	struct i2c_registry valente_wx_camera_i2c_devices = {
-		I2C_SURF | I2C_FFA | I2C_FLUID | I2C_RUMI,
-		MSM_8960_GSBI4_QUP_I2C_BUS_ID,
-		valente_wx_camera_board_info.board_info,
-		valente_wx_camera_board_info.num_i2c_board_info,
-	};
-#endif
-
 	mach_mask = I2C_SURF;
 
 	/* Run the array and install devices as appropriate */
@@ -3536,26 +3540,10 @@ static void __init register_i2c_devices(void)
 		}
 	}
 
-	if (1 == board_mfg_mode())
-		if (cs_cy8c_data[1].id.config == CS_KEY_4)
-			cs_cy8c_data[1].keycode[3] = KEY_MENU;
+	i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
+			mpu3050_GSBI12_boardinfo, ARRAY_SIZE(mpu3050_GSBI12_boardinfo));
 
-	if (system_rev < 2) {
-		if (cs_cy8c_data[1].id.config == CS_KEY_4) {
-			pr_info("[cap] Setting as old printing\n");
-			cs_cy8c_data[1].keycode[0] = KEY_HOME;
-			cs_cy8c_data[1].keycode[1] = KEY_MENU;
-			cs_cy8c_data[1].keycode[2] = KEY_BACK;
-			cs_cy8c_data[1].keycode[3] = KEY_SEARCH;
-		}
-	}
-#ifdef CONFIG_MSM_CAMERA
-	/* HTC_START_Simon.Ti_Liu_20120711_IMPLEMENT_MCLK_SWITCH */
-	if (valente_wx_camera_i2c_devices.machs & mach_mask)
-		i2c_register_board_info(valente_wx_camera_i2c_devices.bus,
-				valente_wx_camera_i2c_devices.info,
-				valente_wx_camera_i2c_devices.len);
-#endif
+#if 0
 	if (system_rev < 3) {
 		i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
 			i2c_CM36282_devices, ARRAY_SIZE(i2c_CM36282_devices));
@@ -3588,6 +3576,7 @@ static void __init register_i2c_devices(void)
 			}
 		}
 	}
+#endif
 #endif /* CONFIG_I2C */
 }
 

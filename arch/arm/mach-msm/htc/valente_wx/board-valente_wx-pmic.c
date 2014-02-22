@@ -107,23 +107,23 @@ static struct pm8xxx_gpio_init pm8921_gpios[] __initdata = {
 			 PM_GPIO_OUT_BUF_CMOS, 0, PM_GPIO_PULL_NO,
 			 PM_GPIO_VIN_L17, PM_GPIO_STRENGTH_LOW,
 			 PM_GPIO_FUNC_NORMAL, 0, 0),
-	PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_PMGPIO_CAP_RST, 0),
+	PM8XXX_GPIO_OUTPUT_VIN_BB_FUNC(VALENTE_WX_PMGPIO_GREEN_LED, 1, PM_GPIO_FUNC_NORMAL),
+	PM8XXX_GPIO_OUTPUT_VIN_BB_FUNC(VALENTE_WX_PMGPIO_AMBER_LED, 1, PM_GPIO_FUNC_NORMAL),
 };
-
+#if 0
 static struct  pm8xxx_gpio_init pm8921_gpios_cap_rst[] __initdata = {
 	PM8XXX_GPIO_OUTPUT_VIN_S4_FUNC_XC(VALENTE_WX_PMGPIO_CAP_RST, 0),
 };
-
+#endif
 /* Initial PM8921 MPP configurations */
 static struct pm8xxx_mpp_init pm8921_mpps[] __initdata = {
 	/* External 5V regulator enable; shared by HDMI and USB_OTG switches. */
-	PM8XXX_MPP_INIT(7, D_INPUT, PM8921_MPP_DIG_LEVEL_VPH, DIN_TO_INT),
+	PM8XXX_MPP_INIT(PM8XXX_AMUX_MPP_8, A_INPUT, PM8XXX_MPP_AIN_AMUX_CH8,
+								DOUT_CTRL_LOW),
 	PM8XXX_MPP_INIT(PM8XXX_AMUX_MPP_3, D_BI_DIR, PM8921_MPP_DIG_LEVEL_S4, BI_PULLUP_10KOHM),
 	PM8XXX_MPP_INIT(PM8XXX_AMUX_MPP_4, D_BI_DIR, PM8921_MPP_DIG_LEVEL_L17, BI_PULLUP_10KOHM),
 	PM8XXX_MPP_INIT(PM8XXX_AMUX_MPP_11, D_BI_DIR, PM8921_MPP_DIG_LEVEL_S4, BI_PULLUP_10KOHM),
 	PM8XXX_MPP_INIT(PM8XXX_AMUX_MPP_12, D_BI_DIR, PM8921_MPP_DIG_LEVEL_L17, BI_PULLUP_10KOHM),
-	PM8XXX_MPP_INIT(PM8XXX_AMUX_MPP_8, A_INPUT, PM8XXX_MPP_AIN_AMUX_CH8,
-								DOUT_CTRL_LOW),
 };
 
 
@@ -139,14 +139,14 @@ void __init valente_wx_pm8921_gpio_mpp_init(void)
 			break;
 		}
 	}
-
+#if 0
 	if (system_rev > 1) {	/*XC*/
 		rc = pm8xxx_gpio_config(pm8921_gpios_cap_rst[0].gpio,
 					&pm8921_gpios_cap_rst[0].config);
 		if (rc)
 			pr_err("%s: pm8xxx_gpio_config: rc=%d\n", __func__, rc);
 	}
-
+#endif
 	for (i = 0; i < ARRAY_SIZE(pm8921_mpps); i++) {
 		rc = pm8xxx_mpp_config(pm8921_mpps[i].mpp,
 					&pm8921_mpps[i].config);
@@ -288,8 +288,8 @@ static struct pm8xxx_led_configure pm8921_led_info[] = {
 		.duty_time_ms 	= 64,
 		.lut_flag 	= PM_PWM_LUT_RAMP_UP | PM_PWM_LUT_PAUSE_HI_EN,
 		.out_current    = 40,
-		.duties		= {0, 9, 18, 27, 36, 45, 54, 60,
-				60, 54, 45, 36, 27, 18, 9, 0,
+		.duties		= {0, 15, 30, 45, 60, 75, 90, 100,
+				100, 90, 75, 60, 45, 30, 15, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
