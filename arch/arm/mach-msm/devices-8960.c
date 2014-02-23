@@ -63,6 +63,11 @@
 #include <mach/msm_dsps.h>
 #endif
 
+#define DMOV_HSUART_GSBI4_TX_CHAN       11
+#define DMOV_HSUART_GSBI4_TX_CRCI       8
+
+#define DMOV_HSUART_GSBI4_RX_CHAN       10
+#define DMOV_HSUART_GSBI4_RX_CRCI       7
 
 #define DMOV_HSUART_GSBI5_TX_CHAN       6
 #define DMOV_HSUART_GSBI5_TX_CRCI       10
@@ -86,6 +91,7 @@
 
 /* GSBI UART devices */
 #define MSM_UART2DM_PHYS	(MSM_GSBI2_PHYS + 0x40000)
+#define MSM_UART4DM_PHYS	(MSM_GSBI4_PHYS + 0x40000)
 #define MSM_UART5DM_PHYS	(MSM_GSBI5_PHYS + 0x40000)
 #define MSM_UART6DM_PHYS	(MSM_GSBI6_PHYS + 0x40000)
 #define MSM_UART8DM_PHYS	(MSM_GSBI8_PHYS + 0x40000)
