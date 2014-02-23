@@ -1613,7 +1613,7 @@ static struct i2c_board_info msm_i2c_gsbi5_info[] = {
 	{
 		I2C_BOARD_INFO(CYPRESS_CS_NAME, 0x40 >> 1),
 		.platform_data = &cs_cy8c_data,
-		.irq = MSM_GPIO_TO_INT(PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_SENSOR_INTz)),
+		.irq = PM8921_GPIO_IRQ(PM8921_IRQ_BASE, VALENTE_WX_PMGPIO_CAP_SENSOR_INTz),
 	},
 };
 
