@@ -39,34 +39,36 @@ static struct platform_device msm_camera_server = {
 	.id = 0,
 };
 
-static struct gpiomux_setting cam_settings[16] = {
+static struct gpiomux_setting cam_settings[11] = {
 	{
-		.func = GPIOMUX_FUNC_GPIO, /*suspend*/
-		.drv = GPIOMUX_DRV_2MA,
+		.func = GPIOMUX_FUNC_GPIO, /*suspend - I(L) 8MA*/
+		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_DOWN,
+		.dir = GPIOMUX_IN,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_1, /*active 1 - FUNC1 2MA*/
-		.drv = GPIOMUX_DRV_2MA,
-		.pull = GPIOMUX_PULL_NONE,
-	},
-
-	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 2*/
-		.drv = GPIOMUX_DRV_2MA,
-		.pull = GPIOMUX_PULL_NONE,
-	},
-
-	{
-		.func = GPIOMUX_FUNC_1, /*active 3 - FUNC1 8MA*/
+		.func = GPIOMUX_FUNC_1, /*active 1 - A FUNC1 8MA*/
 		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_NONE,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_2, /*active 4 - FUNC2 2MA*/
-		.drv = GPIOMUX_DRV_2MA,
+		.func = GPIOMUX_FUNC_GPIO, /*active 2 - O(L) 8MA*/
+		.drv = GPIOMUX_DRV_8MA,
+		.pull = GPIOMUX_PULL_NONE,
+		.dir = GPIOMUX_OUT_LOW,
+	},
+
+	{
+		.func = GPIOMUX_FUNC_1, /*active 3 - A FUNC1 8MA*/
+		.drv = GPIOMUX_DRV_8MA,
+		.pull = GPIOMUX_PULL_NONE,
+	},
+
+	{
+		.func = GPIOMUX_FUNC_2, /*active 4 - A FUNC2 8MA*/
+		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_NONE,
 	},
 
@@ -78,8 +80,8 @@ static struct gpiomux_setting cam_settings[16] = {
 	},
 
 	{
-		.func = GPIOMUX_FUNC_2, /*active 6 - A FUNC2 4MA*/
-		.drv = GPIOMUX_DRV_4MA,
+		.func = GPIOMUX_FUNC_2, /*active 6 - A FUNC2 2MA*/
+		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_NONE,
 	},
 
@@ -91,7 +93,7 @@ static struct gpiomux_setting cam_settings[16] = {
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 8 - I(PD) 2MA*/
+		.func = GPIOMUX_FUNC_GPIO, /*active 8 - I(L) 2MA*/
 		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_DOWN,
 		.dir = GPIOMUX_IN,
@@ -105,44 +107,10 @@ static struct gpiomux_setting cam_settings[16] = {
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 10 - O(L) 8MA*/
-		.drv = GPIOMUX_DRV_8MA,
-		.pull = GPIOMUX_PULL_NONE,
-		.dir = GPIOMUX_OUT_LOW,
-	},
-
-	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 11 - I(PU) 2MA*/
-		.drv = GPIOMUX_DRV_2MA,
-		.pull = GPIOMUX_PULL_UP,
-		.dir = GPIOMUX_IN,
-	},
-
-	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 12 - O(L) 2MA*/
+		.func = GPIOMUX_FUNC_GPIO, /*active 10 - O(L) 2MA*/
 		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_NONE,
 		.dir = GPIOMUX_OUT_LOW,
-	},
-
-	{
-		.func = GPIOMUX_FUNC_2, /*active 13 - A FUNC2 8MA*/
-		.drv = GPIOMUX_DRV_8MA,
-		.pull = GPIOMUX_PULL_NONE,
-	},
-
-	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 14 - I(NP) 8MA*/
-		.drv = GPIOMUX_DRV_8MA,
-		.pull = GPIOMUX_PULL_NONE,
-		.dir = GPIOMUX_IN,
-	},
-
-	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 15 - I(PD) 8MA*/
-		.drv = GPIOMUX_DRV_8MA,
-		.pull = GPIOMUX_PULL_DOWN,
-		.dir = GPIOMUX_IN,
 	},
 };
 
@@ -150,81 +118,72 @@ static struct msm_gpiomux_config valente_wx_cam_configs[] = {
 	{
 		.gpio = VALENTE_WX_GPIO_CAM_MCLK1,
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[13], /*A FUNC2 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[10], /*O(L) 8MA*/
+			[GPIOMUX_ACTIVE]    = &cam_settings[4],
+			[GPIOMUX_SUSPENDED] = &cam_settings[2],
 		},
 	},
 	{
 		.gpio = VALENTE_WX_GPIO_CAM_MCLK0,
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[3],  /*Fun1 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[10], /*O(L) 8MA*/
-		},
-	},
-
-	{
-		.gpio = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAM_PWDN),
-		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[9],       /*O(H) 2MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[12],  /*O(L) 2MA*/
-		},
-	},
-
-	{
-		.gpio = VALENTE_WX_GPIO_CAM_I2C_DAT,
-		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[3], /*FUNC1 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[15], /*I(PD) 8MA*/
+			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+			[GPIOMUX_SUSPENDED] = &cam_settings[2],
 		},
 	},
 	{
-		.gpio = VALENTE_WX_GPIO_CAM_I2C_CLK,
+		.gpio = VALENTE_WX_GPIO_CAM_I2C_SDA,
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[3], /*FUNC1 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[15], /*I(PD) 8MA*/
+			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+		},
+	},
+	{
+		.gpio = VALENTE_WX_GPIO_CAM_I2C_SCL,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+			[GPIOMUX_SUSPENDED] = &cam_settings[0],
 		},
 	},
 	{
 		.gpio = VALENTE_WX_GPIO_RAW_INTR0,
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &cam_settings[7], /*I(NP) 2MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[8], /*I(PD) 2MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[8], /*I(L) 2MA*/
 		},
 	},
 	{
 		.gpio = VALENTE_WX_GPIO_RAW_INTR1,
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &cam_settings[7], /*I(NP) 2MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[8], /*I(PD) 2MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[8], /*I(L) 2MA*/
 		},
 	},
 	/* gpio config for Rawchip SPI - gsbi10 */
 	{
 		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_CLK,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[13], /*A FUNC2 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[15], /* I(PD) 8MA */
+			[GPIOMUX_ACTIVE] = &cam_settings[4], /*A FUNC2 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[2], /*O(L) 8MA*/
 		},
 	},
 	{
 		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_CS0,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[13], /*A FUNC2 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[15], /* I(PD) 8MA */
+			[GPIOMUX_ACTIVE] = &cam_settings[6], /*A FUNC2 2MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[10], /* O(L) 2MA*/
 		},
 	},
 	{
 		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_DI,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[13], /*A FUNC2 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[15], /* I(PD) 8MA */
+			[GPIOMUX_ACTIVE] = &cam_settings[4], /*A FUNC2 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[0], /* I(L) 8MA*/
 		},
 	},
 	{
 		.gpio      = VALENTE_WX_GPIO_MCAM_SPI_DO,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[13], /*A FUNC2 8MA*/
-			[GPIOMUX_SUSPENDED] = &cam_settings[15], /* I(PD) 8MA */
+			[GPIOMUX_ACTIVE] = &cam_settings[4], /*A FUNC2 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[2], /*O(L) 8MA*/
 		},
 	},
 };
@@ -400,7 +359,34 @@ struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
 int valente_wx_flashlight_control(int mode)
 {
 #ifdef CONFIG_FLASHLIGHT_TPS61310
-	return tps61310_flashlight_control(mode);
+	int	rc;
+	/* Andrew_Cheng Turn off backlight when flash on */
+//	static int	backlight_off = 0;
+
+/*
+	if(mode == FL_MODE_FLASH
+	|| mode == FL_MODE_TORCH_LEVEL_1
+	||mode == FL_MODE_TORCH_LEVEL_2
+	||mode == FL_MODE_FLASH_LEVEL1
+	||mode == FL_MODE_FLASH_LEVEL2) {
+		led_brightness_switch("lcd-backlight", LED_OFF);
+		backlight_off = 1;
+	}
+*/
+	rc = tps61310_flashlight_control(mode);
+/*
+	if(mode != FL_MODE_FLASH
+	&&  mode != FL_MODE_TORCH_LEVEL_1
+	&& mode != FL_MODE_TORCH_LEVEL_2
+	&& mode != FL_MODE_FLASH_LEVEL1
+	&& mode != FL_MODE_FLASH_LEVEL2) {
+		if(backlight_off) {
+			led_brightness_switch("lcd-backlight", LED_ON);
+			backlight_off = 0;
+		}
+	}
+*/
+	return rc;
 #else
 	return 0;
 #endif
@@ -422,7 +408,7 @@ GPIO#93 == V_CAM_D1V8
 #ifdef CONFIG_RAWCHIP
 static int valente_wx_use_ext_1v2(void)
 {
-	return 0;
+	return 1;
 }
 
 static struct regulator *reg_8921_l2;
@@ -430,69 +416,71 @@ static struct regulator *reg_8921_l9;
 static struct regulator *reg_8921_l17;
 static struct regulator *reg_8921_lvs6;
 
+#define VALENTE_WX_SYS_V_RAW_1V2_EN PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_V_RAW_1V2_EN)
+#define VALENTE_WX_SYS_V_RAW_1V8_EN PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_V_RAW_1V8_EN)
+
 static int valente_wx_rawchip_vreg_on(void)
 {
 	int rc;
 	pr_info("[CAM] %s\n", __func__);
-
-	/* VCM */
-	rc = camera_sensor_power_enable("8921_l17", 2800000, &reg_8921_l17); // Mu Lee for sequence with raw chip 20120116
-	if (rc < 0) {
-		pr_err("[CAM] rawchip_power_enable(\"8921_l17\", 2.8V) FAILED %d\n", rc);
-		goto enable_VCM_fail;
-	}
-
-	/* PM8921_lvs6 1800000 */
-	rc = camera_sensor_power_enable("8921_lvs6", 1800000, &reg_8921_lvs6);
-	if (rc < 0) {
-		pr_err("[CAM] rawchip_power_enable(\"8921_lvs6\", 1.8V) FAILED %d\n", rc);
+	/* PM8921_GPIO_PM_TO_SYS(VALENTE_WX_V_RAW_1V8_EN) 1800000 */
+	rc = gpio_request(VALENTE_WX_SYS_V_RAW_1V8_EN, "V_RAW_1V8_EN");
+	if (rc) {
+		pr_err("[CAM] rawchip on\
+			(\"gpio %d\", 1.2V) FAILED %d\n",
+			VALENTE_WX_SYS_V_RAW_1V8_EN, rc);
 		goto enable_1v8_fail;
 	}
+	gpio_direction_output(VALENTE_WX_SYS_V_RAW_1V8_EN, 1);
+	gpio_free(VALENTE_WX_SYS_V_RAW_1V8_EN);
 
 	mdelay(5);
 
-	/* digital */
-	rc = gpio_request(VALENTE_WX_GPIO_V_CAM_D1V2_EN, "CAM_D1V2_EN");
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_enable(\"gpio %d\", 1.2V) FAILED %d\n", VALENTE_WX_GPIO_V_CAM_D1V2_EN, rc);
+	/* PM8921_GPIO_PM_TO_SYS(VALENTE_WX_SYS_V_RAW_1V2_EN) 1200000 */
+	rc = gpio_request(VALENTE_WX_SYS_V_RAW_1V2_EN, "V_RAW_1V2_EN");
+	if (rc) {
+		pr_err("[CAM] rawchip on\
+			(\"gpio %d\", 1.2V) FAILED %d\n",
+			VALENTE_WX_SYS_V_RAW_1V2_EN, rc);
 		goto enable_1v2_fail;
 	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 1);
-	gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+	gpio_direction_output(VALENTE_WX_SYS_V_RAW_1V2_EN, 1);
+	gpio_free(VALENTE_WX_SYS_V_RAW_1V2_EN);
 
-	/* analog */
-	/* Mu Lee for sequence with raw chip 20120116 */
-	rc = camera_sensor_power_enable("8921_l9", 2800000, &reg_8921_l9);
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_enable(\"8921_l9\", 2.8V) FAILED %d\n", rc);
-		goto enable_analog_fail;
-	}
+	//if (system_rev >= 1) { /* for XB */
+		if (valente_wx_use_ext_1v2()) { /* use external 1v2 for HW workaround */
+			mdelay(1);
 
-#if 0
-	/* LCMIO */
-	rc = gpio_request(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, "CAM_D1V8_EN"); /* Mu Lee for sequence with raw chip 20120116 */
-	if (rc < 0) {
-		pr_err("[CAM] %s:GPIO_CAM_D1V8_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_LCMIO_1V8_EN, rc);
-		goto lcmio_hi_fail;
-	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, 1); /* Mu Lee for sequence with raw chip 20120116 */
-	gpio_free(VALENTE_WX_GPIO_V_LCMIO_1V8_EN); /* Mu Lee for sequence with raw chip 20120116 */
-#endif
+			rc = gpio_request(VALENTE_WX_GPIO_V_CAM_D1V2_EN, "rawchip");
+			pr_info("[CAM]rawchip external 1v2 gpio_request,%d\n", VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+			if (rc < 0) {
+				pr_err("GPIO(%d) request failed", VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+				goto enable_ext_1v2_fail;
+			}
+			gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 1);
+			gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+		}
+	//}
+
 	return rc;
 
-#if 0
-lcmio_hi_fail:
-	camera_sensor_power_disable(reg_8921_l9);
-#endif
-enable_analog_fail:
-	gpio_request(VALENTE_WX_GPIO_V_CAM_D1V2_EN, "CAM_D1V2_EN");
-	gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 0);
-	gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+enable_ext_1v2_fail:
+	rc = gpio_request(VALENTE_WX_SYS_V_RAW_1V2_EN, "V_RAW_1V2_EN");
+	if (rc)
+		pr_err("[CAM] rawchip on\
+			(\"gpio %d\", 1.2V) FAILED %d\n",
+			VALENTE_WX_SYS_V_RAW_1V2_EN, rc);
+	gpio_direction_output(VALENTE_WX_SYS_V_RAW_1V2_EN, 0);
+	gpio_free(VALENTE_WX_SYS_V_RAW_1V2_EN);
 enable_1v2_fail:
-	camera_sensor_power_disable(reg_8921_lvs6);
+	rc = gpio_request(VALENTE_WX_SYS_V_RAW_1V8_EN, "V_RAW_1V8_EN");
+	if (rc)
+		pr_err("[CAM] rawchip on\
+			(\"gpio %d\", 1.2V) FAILED %d\n",
+			VALENTE_WX_SYS_V_RAW_1V8_EN, rc);
+	gpio_direction_output(VALENTE_WX_SYS_V_RAW_1V8_EN, 0);
+	gpio_free(VALENTE_WX_SYS_V_RAW_1V8_EN);
 enable_1v8_fail:
-	camera_sensor_power_disable(reg_8921_l17);
-enable_VCM_fail:
 	return rc;
 }
 
@@ -502,57 +490,45 @@ static int valente_wx_rawchip_vreg_off(void)
 
 	pr_info("[CAM] %s\n", __func__);
 
-	/* Mu Lee for sequence with raw chip 20120116 */
-	rc = camera_sensor_power_disable(reg_8921_l9);
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_disable(\"8921_l9\") FAILED %d\n", rc);
-		goto valente_wx_rawchip_vreg_off_fail;
-	}
+	//if (system_rev >= 1) { /* for XB */
+		if (valente_wx_use_ext_1v2()) { /* use external 1v2 for HW workaround */
+			rc = gpio_request(VALENTE_WX_GPIO_V_CAM_D1V2_EN, "rawchip");
+			if (rc)
+				pr_err("[CAM] rawchip off(\
+					\"gpio %d\", 1.2V) FAILED %d\n",
+					VALENTE_WX_GPIO_V_CAM_D1V2_EN, rc);
+			gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 0);
+			gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
 
-	rc = gpio_request(VALENTE_WX_GPIO_V_CAM_D1V2_EN, "CAM_D1V2_EN");
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_enable(\"gpio %d\", 1.2V) FAILED %d\n", VALENTE_WX_GPIO_V_CAM_D1V2_EN, rc);
-		goto valente_wx_rawchip_vreg_off_fail;
-	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 0);
-	gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+			mdelay(1);
+		}
+	//}
 
-	udelay(50);
-#if 0
-	rc = gpio_request(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, "CAM_D1V8_EN");
-	if (rc < 0) {
-		pr_err("[CAM] %s:GPIO_CAM_D1V8_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_LCMIO_1V8_EN, rc);
-		goto valente_wx_rawchip_vreg_off_fail;
-	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, 0);
-	gpio_free(VALENTE_WX_GPIO_V_LCMIO_1V8_EN);
+	rc = gpio_request(VALENTE_WX_SYS_V_RAW_1V2_EN, "V_RAW_1V2_EN");
+	if (rc)
+		pr_err("[CAM] rawchip off(\
+			\"gpio %d\", 1.2V) FAILED %d\n",
+			VALENTE_WX_SYS_V_RAW_1V2_EN, rc);
+	gpio_direction_output(VALENTE_WX_SYS_V_RAW_1V2_EN, 0);
+	gpio_free(VALENTE_WX_SYS_V_RAW_1V2_EN);
 
 	mdelay(5);
-#endif
-	rc = camera_sensor_power_disable(reg_8921_lvs6);
-	if (rc < 0) {
-		pr_err("[CAM] rawchip_power_disable(\"8921_lvs6\", 1.8V) FAILED %d\n", rc);
-		goto valente_wx_rawchip_vreg_off_fail;
-	}
 
-	/* VCM */
-	/* Mu Lee for sequenc with raw chip 20120116 */
-	rc = camera_sensor_power_disable(reg_8921_l17);
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_disable(\"8921_l17\") FAILED %d\n", rc);
-		goto valente_wx_rawchip_vreg_off_fail;
-	}
+	rc = gpio_request(VALENTE_WX_SYS_V_RAW_1V8_EN, "V_RAW_1V8_EN");
+	if (rc)
+		pr_err("[CAM] rawchip off\
+			(\"gpio %d\", 1.2V) FAILED %d\n",
+			VALENTE_WX_SYS_V_RAW_1V8_EN, rc);
+	gpio_direction_output(VALENTE_WX_SYS_V_RAW_1V8_EN, 0);
+	gpio_free(VALENTE_WX_SYS_V_RAW_1V8_EN);
 
-	return rc;
-
-valente_wx_rawchip_vreg_off_fail:
 	return rc;
 }
 
 static struct msm_camera_rawchip_info msm_rawchip_board_info = {
 	.rawchip_reset	= VALENTE_WX_GPIO_RAW_RSTN,
-	.rawchip_intr0	= MSM_GPIO_TO_INT(VALENTE_WX_GPIO_RAW_INTR0),
-	.rawchip_intr1	= MSM_GPIO_TO_INT(VALENTE_WX_GPIO_RAW_INTR1),
+	.rawchip_intr0	= VALENTE_WX_GPIO_RAW_INTR0,	/*MSM_GPIO_TO_INT(VALENTE_WX_GPIO_RAW_INTR0),*/
+	.rawchip_intr1	= VALENTE_WX_GPIO_RAW_INTR1,	/*MSM_GPIO_TO_INT(VALENTE_WX_GPIO_RAW_INTR1),*/
 	.rawchip_spi_freq = 27, /* MHz, should be the same to spi max_speed_hz */
 	.rawchip_mclk_freq = 24, /* MHz, should be the same as cam csi0 mclk_clk_rate */
 	.camera_rawchip_power_on = valente_wx_rawchip_vreg_on,
@@ -660,21 +636,13 @@ static int valente_wx_s5k3h2yx_vreg_on(void)
 	int rc = 0;
 	pr_info("[CAM] %s\n", __func__);
 
-#if 0
 	/* VCM */
-	rc = camera_sensor_power_enable("8921_l17", 2800000, &reg_8921_l17);
+	rc = camera_sensor_power_enable("8921_l17", 2850000, &reg_8921_l17);
 	if (rc < 0) {
 		pr_err("[CAM] sensor_power_enable(\"8921_l17\", 2.85V) FAILED %d\n", rc);
 		goto enable_vcm_fail;
 	}
-
-	/* redundant setting...enable at rawchip */
-	/* IO */
-	rc = camera_sensor_power_enable("8921_lvs6", 1800000, &reg_8921_lvs6);
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_enable(\"8921_lvs6\", 1.8V) FAILED %d\n", rc);
-		goto enable_io_fail;
-	}
+	mdelay(1);
 
 	/* analog */
 	rc = camera_sensor_power_enable("8921_l9", 2800000, &reg_8921_l9);
@@ -682,8 +650,7 @@ static int valente_wx_s5k3h2yx_vreg_on(void)
 		pr_err("[CAM] sensor_power_enable(\"8921_l9\", 2.8V) FAILED %d\n", rc);
 		goto enable_analog_fail;
 	}
-
-	udelay(50);
+	mdelay(1);
 
 	/* redundant setting...enable at rawchip */
 	/* digital */
@@ -694,24 +661,33 @@ static int valente_wx_s5k3h2yx_vreg_on(void)
 	}
 	gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 1);
 	gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+	mdelay(1);
 
-	rc = gpio_request(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, "CAM_D1V8_EN");
+	/* IO */
+	rc = camera_sensor_power_enable("8921_lvs6", 1800000, &reg_8921_lvs6);
 	if (rc < 0) {
-		pr_err("[CAM] %s:GPIO_CAM_D1V8_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_LCMIO_1V8_EN, rc);
-		goto enable_digital_fail;
+		pr_err("[CAM] sensor_power_enable\
+			(\"8921_lvs6\", 1.8V) FAILED %d\n", rc);
+		goto enable_io_fail;
 	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, 1);
-	gpio_free(VALENTE_WX_GPIO_V_LCMIO_1V8_EN);
+
 	return rc;
 
+enable_io_fail:
+	rc = gpio_request(VALENTE_WX_GPIO_V_CAM_D1V2_EN, "CAM_D1V2_EN");
+	if (rc < 0)
+		pr_err("[CAM] sensor_power_disable\
+			(\"gpio %d\", 1.2V) FAILED %d\n",
+			VALENTE_WX_GPIO_V_CAM_D1V2_EN, rc);
+	else {
+		gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 0);
+		gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
+	}
 enable_digital_fail:
 	camera_sensor_power_disable(reg_8921_l9);
 enable_analog_fail:
-	camera_sensor_power_disable(reg_8921_lvs6);
-enable_io_fail:
 	camera_sensor_power_disable(reg_8921_l17);
 enable_vcm_fail:
-#endif
 	return rc;
 }
 
@@ -720,50 +696,34 @@ static int valente_wx_s5k3h2yx_vreg_off(void)
 	int rc = 0;
 
 	pr_info("[CAM] %s\n", __func__);
-#if 0
 	/* analog */
 	rc = camera_sensor_power_disable(reg_8921_l9);
-	if (rc < 0) {
+	if (rc < 0)
 		pr_err("[CAM] sensor_power_disable(\"8921_l9\") FAILED %d\n", rc);
-		goto valente_wx_s5k3h2yx_vreg_off_fail;
-	}
-
-	udelay(50);
-	/* VCM */
-	rc = camera_sensor_power_disable(reg_8921_l17);
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_disable(\"8921_l17\") FAILED %d\n", rc);
-		goto valente_wx_s5k3h2yx_vreg_off_fail;
-	}
+	mdelay(1);
 
 	/* digital */
-	/* remove because rawchip will turn it off latter. */
-
 	rc = gpio_request(VALENTE_WX_GPIO_V_CAM_D1V2_EN, "CAM_D1V2_EN");
-	if (rc < 0) {
-		pr_err("[CAM] %s:GPIO_CAM_D1V2_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_CAM_D1V2_EN, rc);
-		goto valente_wx_s5k3h2yx_vreg_off_fail;
+	if (rc < 0)
+		pr_err("[CAM] %s:VALENTE_WX_GPIO_V_CAM_D1V2_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_CAM_D1V2_EN, rc);
+	else {
+		gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 0);
+		gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
 	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_CAM_D1V2_EN, 0);
-	gpio_free(VALENTE_WX_GPIO_V_CAM_D1V2_EN);
-
-	rc = gpio_request(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, "CAM_D1V8_EN");
-	if (rc < 0) {
-		pr_err("[CAM] %s:GPIO_CAM_D1V8_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_LCMIO_1V8_EN, rc);
-		goto valente_wx_s5k3h2yx_vreg_off_fail;
-	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, 0);
-	gpio_free(VALENTE_WX_GPIO_V_LCMIO_1V8_EN);
+	mdelay(1);
 
 	/* IO */
 	rc = camera_sensor_power_disable(reg_8921_lvs6);
-	if (rc < 0) {
+	if (rc < 0)
 		pr_err("[CAM] sensor_power_disable(\"8921_lvs6\") FAILED %d\n", rc);
-		goto valente_wx_s5k3h2yx_vreg_off_fail;
-	}
+	mdelay(1);
 
-valente_wx_s5k3h2yx_vreg_off_fail:
-#endif
+	/* VCM */
+	/* needn't power-off l17 */
+	if (reg_8921_l17 != NULL) {
+		regulator_put(reg_8921_l17);
+		reg_8921_l17 = NULL;
+	}
 
 	return rc;
 }
@@ -819,100 +779,90 @@ static struct camera_led_est msm_camera_sensor_s5k3h2yx_led_table[] = {
 		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL2,
 		.current_ma = 200,
-		.lumen_value = 250,
-		.min_step = 64,//31,/*26, //Mu L 0209 */
+		.lumen_value = 250,//245,//240,   //mk0118
+		.min_step = 58,//23,  //mk0210
 		.max_step = 256
 	},
 		{
-		.enable = 1,//0, Mu L 0302
+		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL3,
 		.current_ma = 300,
-		.lumen_value = 350,//300,
-		.min_step = 60,//29,
-		.max_step = 63//34
+		.lumen_value = 350,
+		.min_step = 54,
+		.max_step = 57			
 	},
 		{
-		.enable = 1,//0, Mu L 0302
+		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL4,
 		.current_ma = 400,
-		.lumen_value = 440,//400,
-		.min_step = 56,//27,
-		.max_step = 59//28
+		.lumen_value = 440,
+		.min_step = 50,
+		.max_step = 53
 	},
 //		{
 //		.enable = 0,
 //		.led_state = FL_MODE_FLASH_LEVEL5,
 //		.current_ma = 500,
 //		.lumen_value = 500,
-//		.min_step = 25,
-//		.max_step = 26
+//		.min_step = 23,//25,
+//		.max_step = 29//26,
 //	},
 		{
-		.enable = 1,//0, Mu L 0302
+		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL6,
 		.current_ma = 600,
-		.lumen_value = 625,//600,
-		.min_step = 52,//23,
-		.max_step = 55//24
+		.lumen_value = 625,
+		.min_step = 46,
+		.max_step = 49
 	},
-	/*
-		{
-		.enable = 0,
-		.led_state = FL_MODE_FLASH_LEVEL7,
-		.current_ma = 700,
-		.lumen_value = 700,
-		.min_step = 21,
-		.max_step = 22
-	},
-	*/
+//		{
+//		.enable = 0,
+//		.led_state = FL_MODE_FLASH_LEVEL7,
+//		.current_ma = 700,
+//		.lumen_value = 700,
+//		.min_step = 21,
+//		.max_step = 22
+//	},
 		{
 		.enable = 1,
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 745,//725,   //mk0217
+		.lumen_value = 745,//725,   //mk0217  //mk0221
 		.min_step = 0,
-		.max_step = 51//30/*25    //Mu L 0209*/
+		.max_step = 45    //mk0210
 	},
 
 		{
 		.enable = 2,
 		.led_state = FL_MODE_FLASH_LEVEL2,
 		.current_ma = 200,
-		.lumen_value = 250,//245,  //mk0127
+		.lumen_value = 250,//245,
 		.min_step = 0,
 		.max_step = 270
 	},
 		{
 		.enable = 0,
-		.led_state = FL_MODE_FLASH_LEVEL3,
-		.current_ma = 300,
-		.lumen_value = 300,
+		.led_state = FL_MODE_OFF,
+		.current_ma = 0,
+		.lumen_value = 0,
 		.min_step = 0,
-		.max_step = 100
+		.max_step = 0
 	},
 		{
 		.enable = 0,
-		.led_state = FL_MODE_FLASH_LEVEL4,
-		.current_ma = 400,
-		.lumen_value = 400,
-		.min_step = 101,
-		.max_step = 200
-	},
-	{
-		.enable = 0,
-		.led_state = FL_MODE_FLASH_LEVEL7,
-		.current_ma = 700,
-		.lumen_value = 700,
-		.min_step = 101,
-		.max_step = 200
+		.led_state = FL_MODE_TORCH,
+		.current_ma = 150,
+		.lumen_value = 150,
+		.min_step = 0,
+		.max_step = 0
 	},
 		{
-		.enable = 2,
+		.enable = 2,     //mk0210
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 745,//725,   //mk0217
+		.lumen_value = 745,//725,   //mk0217   //mk0221
 		.min_step = 271,
-		.max_step = 325
+		.max_step = 317    //mk0210
 	},
 	{
 		.enable = 0,
@@ -930,6 +880,15 @@ static struct camera_led_est msm_camera_sensor_s5k3h2yx_led_table[] = {
 		.min_step = 271,
 		.max_step = 325
 	},
+
+	{
+		.enable = 0,
+		.led_state = FL_MODE_TORCH_LEVEL_2,
+		.current_ma = 200,
+		.lumen_value = 75,
+		.min_step = 0,
+		.max_step = 40
+	},
 };
 
 static struct camera_led_info msm_camera_sensor_s5k3h2yx_led_info = {
@@ -946,7 +905,7 @@ static struct camera_flash_info msm_camera_sensor_s5k3h2yx_flash_info = {
 
 static struct camera_flash_cfg msm_camera_sensor_s5k3h2yx_flash_cfg = {
 	.low_temp_limit		= 5,
-	.low_cap_limit		= 14,
+	.low_cap_limit		= 15,
 	.low_cap_limit_dual	= 0,
 	.flash_info             = &msm_camera_sensor_s5k3h2yx_flash_info,
 };
@@ -977,168 +936,415 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k3h2yx_data = {
 };
 #endif /* CONFIG_S5K3H2YX */
 
-#ifdef CONFIG_MT9V113
-static int valente_wx_mt9v113_vreg_on(void)
+#ifdef CONFIG_IMX175
+static int valente_wx_imx175_vreg_on(void)
 {
 	int rc;
-
 	pr_info("[CAM] %s\n", __func__);
+
 	/* VCM */
-	/* Mu Lee for sequence with raw chip 20120116 */
-	rc = camera_sensor_power_enable("8921_l17", 2800000, &reg_8921_l17);
+	rc = camera_sensor_power_enable("8921_l17", 2850000, &reg_8921_l17);
+
 	if (rc < 0) {
-		pr_err("[CAM] sensor_power_enable(\"8921_l17\", 2.8V) FAILED %d\n", rc);
-		goto init_fail;
+		pr_err("[CAM] sensor_power_enable\
+			(\"8921_l9\", 2.8V) FAILED %d\n", rc);
+		goto enable_vcm_fail;
 	}
+	mdelay(1);
 
-	udelay(50);
-
-	/* digital */
-	rc = camera_sensor_power_enable("8921_lvs6", 1800000, &reg_8921_lvs6);
-	pr_info("[CAM] sensor_power_enable(\"8921_lvs6\", 1.8V) == %d\n", rc);
-	if (rc < 0)
-		goto init_fail;
-
-	udelay(50);
-
-	/* analog */
+	/* VANA */
 	rc = camera_sensor_power_enable("8921_l9", 2800000, &reg_8921_l9);
-	pr_info("[CAM] sensor_power_enable(\"8921_l9\", 2.8V) == %d\n", rc);
-	if (rc < 0)
-		goto init_fail;
-
-	udelay(50);
-
-#if 0
-	/* IO */
-	rc = gpio_request(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, "CAM_D1V8_EN");
-	pr_info("[CAM] valente_wx_mt9v113_vreg_on %d 1v8\n", VALENTE_WX_GPIO_V_LCMIO_1V8_EN);
 	if (rc < 0) {
-		pr_err("[CAM] %s:GPIO_CAM_D1V8_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_LCMIO_1V8_EN, rc);
-		goto init_fail;
+		pr_err("[CAM] sensor_power_enable\
+			(\"8921_l9\", 2.8V) FAILED %d\n", rc);
+		goto enable_vana_fail;
 	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, 1);
-	gpio_free(VALENTE_WX_GPIO_V_LCMIO_1V8_EN);
-	udelay(50);
-#endif
+	mdelay(1);
 
-	/* enable clock here?? */
-
-	/* Reset */
-#if 0
-	rc = gpio_request(VALENTE_WX_GPIO_CAM2_RSTz, "mt9v113");
+	/* VDIG */
+	rc = camera_sensor_power_enable("8921_lvs6", 1800000, &reg_8921_lvs6);
 	if (rc < 0) {
-		pr_err("[CAM] %s:VALENTE_WX_GPIO_CAM2_RSTz gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_CAM2_RSTz, rc);
-		goto init_fail;
+		pr_err("[CAM] sensor_power_enable\
+			(\"8921_lvs6\", 1.8V) FAILED %d\n", rc);
+		goto enable_vdig_fail;
 	}
-	gpio_direction_output(VALENTE_WX_GPIO_CAM2_RSTz, 1);
-	msleep(2);
-	gpio_free(VALENTE_WX_GPIO_CAM2_RSTz);
-#endif
-	udelay(50);
 
-init_fail:
+	return rc;
+
+enable_vdig_fail:
+	camera_sensor_power_disable(reg_8921_l9);
+enable_vana_fail:
+enable_vcm_fail:
 	return rc;
 }
 
-static int valente_wx_mt9v113_vreg_off(void)
+static int valente_wx_imx175_vreg_off(void)
 {
-	int rc;
+	int rc = 0;
 
 	pr_info("[CAM] %s\n", __func__);
-	/* Reset */
-#if 0
-	rc = gpio_request(VALENTE_WX_GPIO_CAM2_RSTz, "mt9v113");
-	if (rc < 0) {
-		pr_err("[CAM] %s:VALENTE_WX_GPIO_CAM2_RSTz gpio %d request failed, rc=%d\n", __func__,	VALENTE_WX_GPIO_CAM2_RSTz, rc);
-		goto init_fail;
-	}
-	gpio_direction_output(VALENTE_WX_GPIO_CAM2_RSTz, 0);
-	msleep(2);
-	gpio_free(VALENTE_WX_GPIO_CAM2_RSTz);
-#endif
-	udelay(50);
 
-	/* disable clock here */
-
-#if 0
-	/* IO */
-	rc = gpio_request(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, "CAM_D1V8_EN");
-	pr_info("[CAM] valente_wx_mt9v113_vreg_off %d 1v8\n", VALENTE_WX_GPIO_V_LCMIO_1V8_EN);
-	if (rc < 0) {
-		pr_err("[CAM] %s:GPIO_CAM_D1V8_EN gpio %d request failed, rc=%d\n", __func__,  VALENTE_WX_GPIO_V_LCMIO_1V8_EN, rc);
-		goto init_fail;
-	}
-	gpio_direction_output(VALENTE_WX_GPIO_V_LCMIO_1V8_EN, 0);
-	gpio_free(VALENTE_WX_GPIO_V_LCMIO_1V8_EN);
-
-	udelay(50);
-#endif
-
-	/* analog */
+	/* VANA */
 	rc = camera_sensor_power_disable(reg_8921_l9);
-	pr_info("[CAM] camera_sensor_power_disable(\"8921_l9\", 2.8V) == %d\n", rc);
 	if (rc < 0)
-		goto init_fail;
+		pr_err("[CAM] sensor_power_disable\
+			(\"8921_l9\") FAILED %d\n", rc);
+	mdelay(1);
 
-	udelay(50);
-
-	/* digital */
+	/* VDIG */
 	rc = camera_sensor_power_disable(reg_8921_lvs6);
-	pr_info("[CAM] camera_sensor_power_disable(\"8921_lvs6\", 1.8V) == %d\n", rc);
 	if (rc < 0)
-		goto init_fail;
+		pr_err("[CAM] sensor_power_disable\
+			(\"8921_lvs6\") FAILED %d\n", rc);
 
-	udelay(50);
+	mdelay(1);
 
 	/* VCM */
-	rc = camera_sensor_power_disable(reg_8921_l17);
-	if (rc < 0) {
-		pr_err("[CAM] sensor_power_disable(\"8921_l17\") FAILED %d\n", rc);
-		goto init_fail;
+	if (reg_8921_l17 != NULL) {
+		regulator_put(reg_8921_l17);
+		reg_8921_l17 = NULL;
 	}
 
-init_fail:
-		return rc;
+	if (rc < 0)
+		pr_err("[CAM] sensor_power_disable\
+			(\"8921_l9\") FAILED %d\n", rc);
+
+	return rc;
 }
 
-static struct msm_camera_csi_lane_params mt9v113_csi_lane_params = {
-	.csi_lane_assign = 0xE4,
-	.csi_lane_mask = 0x1,
+#ifdef CONFIG_IMX175_ACT
+static struct i2c_board_info imx175_actuator_i2c_info = {
+	I2C_BOARD_INFO("imx175_act", 0x11),
 };
 
-static struct msm_camera_sensor_platform_info sensor_mt9v113_board_info = {
-	.mount_angle = 270,
-	.sensor_reset_enable = 1,
-	.sensor_reset	= VALENTE_WX_GPIO_CAM2_RSTz,
-	.sensor_pwd	= PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAM_PWDN),
-	.vcm_pwd	= 0,
+static struct msm_actuator_info imx175_actuator_info = {
+	.board_info     = &imx175_actuator_i2c_info,
+	.bus_id         = MSM_8960_GSBI4_QUP_I2C_BUS_ID,
+	.vcm_pwd        = VALENTE_WX_GPIO_CAM_VCM_PD,
+	.vcm_enable     = 1,
+};
+#endif
+
+static struct msm_camera_sensor_platform_info sensor_imx175_board_info = {
+	.mount_angle = 90,
+	.mirror_flip = CAMERA_SENSOR_MIRROR_FLIP,
+	.sensor_reset_enable = 0,
+	.sensor_reset	= 0,
+	.sensor_pwd	= VALENTE_WX_PMGPIO_CAM_PWDN,
+	.vcm_pwd	= VALENTE_WX_GPIO_CAM_VCM_PD,
 	.vcm_enable	= 1,
-	.csi_lane_params = &mt9v113_csi_lane_params,
 };
 
-static struct msm_camera_sensor_flash_data flash_mt9v113 = {
+/* Andrew_Cheng linear led 20111205 MB */
+//150 mA FL_MODE_FLASH_LEVEL1
+//200 mA FL_MODE_FLASH_LEVEL2
+//300 mA FL_MODE_FLASH_LEVEL3
+//400 mA FL_MODE_FLASH_LEVEL4
+//500 mA FL_MODE_FLASH_LEVEL5
+//600 mA FL_MODE_FLASH_LEVEL6
+//700 mA FL_MODE_FLASH_LEVEL7
+static struct camera_led_est msm_camera_sensor_imx175_led_table[] = {
+	{
+		.enable = 1,
+		.led_state = FL_MODE_FLASH_LEVEL2,
+		.current_ma = 200,
+		.lumen_value = 250,//245,//240,   //mk0118
+		.min_step = 58,//23,  //mk0210
+		.max_step = 256
+	},
+	{
+		.enable = 1,
+		.led_state = FL_MODE_FLASH_LEVEL3,
+		.current_ma = 300,
+		.lumen_value = 350,
+		.min_step = 54,
+		.max_step = 57
+	},
+	{
+		.enable = 1,
+		.led_state = FL_MODE_FLASH_LEVEL4,
+		.current_ma = 400,
+		.lumen_value = 440,
+		.min_step = 50,
+		.max_step = 53
+	},
+	{
+		.enable = 1,
+		.led_state = FL_MODE_FLASH_LEVEL6,
+		.current_ma = 600,
+		.lumen_value = 625,
+		.min_step = 46,
+		.max_step = 49
+	},
+	{
+		.enable = 1,
+		.led_state = FL_MODE_FLASH,
+		.current_ma = 750,
+		.lumen_value = 745,//725,   //mk0217  //mk0221
+		.min_step = 0,
+		.max_step = 45    //mk0210
+	},
+	{
+		.enable = 2,
+		.led_state = FL_MODE_FLASH_LEVEL2,
+		.current_ma = 200,
+		.lumen_value = 250,//245,
+		.min_step = 0,
+		.max_step = 270
+	},
+	{
+		.enable = 0,
+		.led_state = FL_MODE_OFF,
+		.current_ma = 0,
+		.lumen_value = 0,
+		.min_step = 0,
+		.max_step = 0
+	},
+	{
+		.enable = 0,
+		.led_state = FL_MODE_TORCH,
+		.current_ma = 150,
+		.lumen_value = 150,
+		.min_step = 0,
+		.max_step = 0
+	},
+	{
+		.enable = 2,     //mk0210
+		.led_state = FL_MODE_FLASH,
+		.current_ma = 750,
+		.lumen_value = 745,//725,   //mk0217   //mk0221
+		.min_step = 271,
+		.max_step = 317    //mk0210
+	},
+	{
+		.enable = 0,
+		.led_state = FL_MODE_FLASH_LEVEL5,
+		.current_ma = 500,
+		.lumen_value = 500,
+		.min_step = 25,
+		.max_step = 26
+	},
+	{
+		.enable = 0,//3,  //mk0210
+		.led_state = FL_MODE_FLASH,
+		.current_ma = 750,
+		.lumen_value = 750,//740,//725,
+		.min_step = 271,
+		.max_step = 325
+	},
+	{
+		.enable = 0,
+		.led_state = FL_MODE_TORCH_LEVEL_2,
+		.current_ma = 200,
+		.lumen_value = 75,
+		.min_step = 0,
+		.max_step = 40
+	},
+};
+
+static struct camera_led_info msm_camera_sensor_imx175_led_info = {
+	.enable = 1,
+	.low_limit_led_state = FL_MODE_TORCH,
+	.max_led_current_ma = 750,  //mk0210
+	.num_led_est_table = ARRAY_SIZE(msm_camera_sensor_imx175_led_table),
+};
+
+static struct camera_flash_info msm_camera_sensor_imx175_flash_info = {
+	.led_info = &msm_camera_sensor_imx175_led_info,
+	.led_est_table = msm_camera_sensor_imx175_led_table,
+};
+
+static struct camera_flash_cfg msm_camera_sensor_imx175_flash_cfg = {
+	.low_temp_limit		= 5,
+	.low_cap_limit		= 15,
+	.low_cap_limit_dual		= 30, //for power restrict in dual mode
+	.flash_info             = &msm_camera_sensor_imx175_flash_info,
+};
+/* Andrew_Cheng linear led 20111205 ME */
+
+static struct msm_camera_sensor_flash_data flash_imx175 = {
+	.flash_type	= MSM_CAMERA_FLASH_LED,
+#ifdef CONFIG_MSM_CAMERA_FLASH
+	.flash_src	= &msm_flash_src,
+#endif
+
+};
+
+static struct msm_camera_sensor_info msm_camera_sensor_imx175_data = {
+	.sensor_name	= "imx175",
+	.camera_power_on = valente_wx_imx175_vreg_on,
+	.camera_power_off = valente_wx_imx175_vreg_off,
+	.pdata	= &msm_camera_csi_device_data[0],
+	.flash_data	= &flash_imx175,
+	.sensor_platform_info = &sensor_imx175_board_info,
+	.gpio_conf = &gpio_conf,
+	.csi_if	= 1,
+	.camera_type = BACK_CAMERA_2D,
+#ifdef CONFIG_IMX175_ACT
+	.actuator_info = &imx175_actuator_info,
+#endif
+	.use_rawchip = 1,
+	.flash_cfg = &msm_camera_sensor_imx175_flash_cfg, /* Andrew_Cheng linear led 20111205 */
+};
+
+struct platform_device valente_wx_camera_sensor_imx175 = {
+	.name	= "msm_camera_imx175",
+	.dev	= {
+		.platform_data = &msm_camera_sensor_imx175_data,
+	},
+};
+#endif
+
+#ifdef CONFIG_S5K6AAFX
+static int valente_wx_s5k6aafx_vreg_on(void)
+{
+	int rc;
+	pr_info("[CAM] %s\n", __func__);
+	/* analog */
+	rc = camera_sensor_power_enable("8921_l9", 2800000, &reg_8921_l9);
+	if (rc < 0) {
+		pr_err("[CAM] sensor_power_enable\
+			(\"8921_l9\", 2.8V) FAILED %d\n", rc);
+		goto enable_analog_fail;
+	}
+
+	mdelay(1);
+	/* digital */
+	rc = gpio_request(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, "V_CAM_D1V8");
+	if (rc) {
+		pr_err("[CAM] sensor_power_enable\
+			(\"gpio %d\", 1.8V) FAILED %d\n",
+			VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, rc);
+		goto enable_digital_fail;
+	}
+	gpio_direction_output(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, 1);
+	gpio_free(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN);
+	mdelay(1);
+	/* IO */
+	rc = camera_sensor_power_enable("8921_lvs6", 1800000, &reg_8921_lvs6);
+	if (rc < 0) {
+		pr_err("[CAM] sensor_power_enable\
+			(\"8921_lvs6\", 1.8V) FAILED %d\n", rc);
+		goto enable_io_fail;
+	}
+	mdelay(1);
+	 /*STANDBY */
+	rc = gpio_request(VALENTE_WX_GPIO_CAM2_STBz, "CAM2_STB#");
+	if (rc) {
+		pr_err("[CAM] sensor_power_enable\
+			(\"gpio %d\") FAILED %d\n",
+			VALENTE_WX_GPIO_CAM2_STBz, rc);
+		goto enable_standby_fail;
+	}
+	gpio_direction_output(VALENTE_WX_GPIO_CAM2_STBz, 1);
+	gpio_free(VALENTE_WX_GPIO_CAM2_STBz);
+
+	return rc;
+
+enable_standby_fail:
+	camera_sensor_power_disable(reg_8921_lvs6);
+enable_io_fail:
+	rc = gpio_request(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, "V_CAM_D1V8");
+	if (rc < 0)
+		pr_err("[CAM] sensor_power_disable\
+			(\"gpio %d\", 1.8V) FAILED %d\n",
+			VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, rc);
+	else {
+		gpio_direction_output(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, 0);
+		gpio_free(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN);
+	}
+enable_digital_fail:
+	camera_sensor_power_disable(reg_8921_l9);
+enable_analog_fail:
+	return rc;
+}
+
+static int valente_wx_s5k6aafx_vreg_off(void)
+{
+	int rc = 0;
+
+	pr_info("[CAM] %s\n", __func__);
+	/* Standby */
+	rc = gpio_request(VALENTE_WX_GPIO_CAM2_STBz, "CAM2_STB#");
+	if (rc < 0)
+		pr_err("[CAM] sensor_power_disable\
+			(\"gpio %d\") FAILED %d\n",
+			VALENTE_WX_GPIO_CAM2_STBz, rc);
+	else {
+		gpio_direction_output(VALENTE_WX_GPIO_CAM2_STBz, 0);
+		gpio_free(VALENTE_WX_GPIO_CAM2_STBz);
+	}
+	mdelay(1);
+
+	/* IO */
+	rc = camera_sensor_power_disable(reg_8921_lvs6);
+	if (rc < 0)
+		pr_err("[CAM] sensor_power_disable\
+			(\"8921_lvs6\") FAILED %d\n", rc);
+
+	mdelay(1);
+
+	/* Digital*/
+	rc = gpio_request(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, "V_CAM_D1V8");
+	if (rc < 0)
+		pr_err("[CAM] sensor_power_disable\
+			(\"gpio %d\") FAILED %d\n",
+			VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, rc);
+	else {
+		gpio_direction_output(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN, 0);
+		gpio_free(VALENTE_WX_GPIO_V_CAM2IO_1V8_EN);
+	}
+	mdelay(1);
+
+	/* Analog */
+	rc = camera_sensor_power_disable(reg_8921_l9);
+	if (rc < 0)
+		pr_err("[CAM] sensor_power_disable\
+			(\"8921_l9\") FAILED %d\n", rc);
+	return rc;
+}
+
+static struct msm_camera_sensor_platform_info sensor_s5k6aafx_board_info = {
+	.mount_angle = 270,
+	.mirror_flip = CAMERA_SENSOR_NONE,
+	.sensor_reset_enable = 0,
+	.sensor_reset	= VALENTE_WX_GPIO_CAM2_RSTz,
+	.sensor_pwd	= VALENTE_WX_GPIO_CAM2_STBz,
+	.vcm_pwd	= 0,
+	.vcm_enable	= 0,
+};
+
+static struct msm_camera_sensor_flash_data flash_s5k6aafx = {
 	.flash_type	= MSM_CAMERA_FLASH_NONE,
 };
 
-static struct msm_camera_sensor_info msm_camera_sensor_mt9v113_data = {
-	.sensor_name = "mt9v113",
-	.sensor_reset_enable = 1,
-	.sensor_reset = VALENTE_WX_GPIO_CAM2_RSTz,
-	.sensor_pwd = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAM_PWDN),
-	.vcm_pwd = 0,
-	.vcm_enable = 1,
-	.camera_power_on = valente_wx_mt9v113_vreg_on,
-	.camera_power_off = valente_wx_mt9v113_vreg_off,
-	.pdata = &msm_camera_csi_device_data[1],
-	.flash_data = &flash_mt9v113,
-	.sensor_platform_info = &sensor_mt9v113_board_info,
+static struct msm_camera_sensor_info msm_camera_sensor_s5k6aafx_data = {
+	.sensor_name	= "s5k6aafx",
+	.sensor_reset	= VALENTE_WX_GPIO_CAM2_RSTz,
+	.sensor_pwd	= VALENTE_WX_GPIO_CAM2_STBz,
+	.vcm_pwd	= 0,
+	.vcm_enable	= 0,
+	.camera_power_on = valente_wx_s5k6aafx_vreg_on,
+	.camera_power_off = valente_wx_s5k6aafx_vreg_off,
+	.pdata	= &msm_camera_csi_device_data[1],
+	.flash_data	= &flash_s5k6aafx,
+	.sensor_platform_info = &sensor_s5k6aafx_board_info,
 	.gpio_conf = &gpio_conf,
-	.csi_if = 1,
+	.csi_if	= 1,
 	.camera_type = FRONT_CAMERA_2D,
-	.use_rawchip = RAWCHIP_DISABLE,
+	.use_rawchip = 0,
+	.mirror_mode = 1,
+	.power_down_disable = false, /* true: disable pwd down function */
+	.full_size_preview = true, /* true: use full size preview */
 };
-#endif /* CONFIG_MT9V113 */
+
+struct platform_device valente_wx_camera_sensor_s5k6aafx = {
+	.name	= "msm_camera_s5k6aafx",
+	.dev	= {
+		.platform_data = &msm_camera_sensor_s5k6aafx_data,
+	},
+};
+#endif
 
 struct i2c_board_info valente_wx_camera_i2c_boardinfo[] = {
 #ifdef CONFIG_S5K3H2YX
@@ -1147,10 +1353,26 @@ struct i2c_board_info valente_wx_camera_i2c_boardinfo[] = {
 		.platform_data = &msm_camera_sensor_s5k3h2yx_data,
 	},
 #endif
-#ifdef CONFIG_MT9V113
+#ifdef CONFIG_S5K6AAFX
 	{
-		I2C_BOARD_INFO("mt9v113", 0x3C),
-		.platform_data = &msm_camera_sensor_mt9v113_data,
+		I2C_BOARD_INFO("s5k6aafx", 0x5a >> 1), /* COB type */
+		.platform_data = &msm_camera_sensor_s5k6aafx_data,
+	},
+#endif
+};
+
+/* Due to OV8830 0x20 slave addr is the same 3H2 */
+struct i2c_board_info valente_wx_2nd_camera_boardinfo[]  = {
+#ifdef CONFIG_IMX175
+	{
+		I2C_BOARD_INFO("imx175", 0x20 >> 1),
+		.platform_data = &msm_camera_sensor_imx175_data,
+	},
+#endif
+#ifdef CONFIG_S5K6AAFX
+	{
+		I2C_BOARD_INFO("s5k6aafx", 0x5a >> 1), /* COB type */
+		.platform_data = &msm_camera_sensor_s5k6aafx_data,
 	},
 #endif
 };

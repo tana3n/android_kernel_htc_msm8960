@@ -20,6 +20,7 @@
 #include <linux/usb/msm_hsusb.h>
 #include <linux/usb/android.h>
 #include <linux/msm_ssbi.h>
+#include <linux/pn544.h>
 #include <linux/regulator/msm-gpio-regulator.h>
 #include <linux/mfd/pm8xxx/pm8921.h>
 #include <linux/regulator/consumer.h>

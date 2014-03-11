@@ -233,16 +233,16 @@ static struct msm_gpiomux_config valente_wx_felica_configs[] = {
 };
 #endif	/* #ifdef CONFIG_FELICA_DD */
 
-static struct gpiomux_setting mdp_vsync_suspend_cfg = {
-	.func = GPIOMUX_FUNC_GPIO,
+static struct gpiomux_setting mdp_vsync_active_cfg = {
+	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_DOWN,
 };
 
-static struct gpiomux_setting mdp_vsync_active_cfg = {
-	.func = GPIOMUX_FUNC_1,
+static struct gpiomux_setting mdp_vsync_suspend_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
+	.pull = GPIOMUX_PULL_DOWN,
 };
 
 static struct msm_gpiomux_config msm8960_mdp_vsync_configs[] __initdata = {
@@ -256,14 +256,14 @@ static struct msm_gpiomux_config msm8960_mdp_vsync_configs[] __initdata = {
 };
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
-
-static struct gpiomux_setting mhl_i2c_suspend_cfg = {
+#if 0
+static struct gpiomux_setting mhl_i2c_active_cfg = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
 
-static struct gpiomux_setting mhl_i2c_active_cfg = {
+static struct gpiomux_setting mhl_i2c_suspend_cfg = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_NONE,
@@ -285,47 +285,57 @@ static struct msm_gpiomux_config valente_wx_mhl_i2c_configs[] __initdata = {
 		},
 	},
 };
+#endif
 
-static struct gpiomux_setting mhl_suspend_cfg = {
+static struct gpiomux_setting mhl_suspend_int_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+};
+
+static struct gpiomux_setting mhl_active_int_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+};
+
+static struct gpiomux_setting mhl_active_rst_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
-
-static struct gpiomux_setting mhl_active_1_cfg = {
+static struct gpiomux_setting mhl_suspend_rst_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_UP,
+	.pull = GPIOMUX_PULL_NONE,
 };
-
-static struct gpiomux_setting mhl_active_2_cfg = {
-	.func = GPIOMUX_FUNC_GPIO,
-	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_UP,
-};
-
 static struct msm_gpiomux_config valente_wx_mhl_configs[] __initdata = {
 	{
 		.gpio = VALENTE_WX_GPIO_MHL_RSTz,
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &mhl_active_1_cfg,
-			[GPIOMUX_SUSPENDED] = &mhl_suspend_cfg,
+			[GPIOMUX_ACTIVE]    = &mhl_active_int_cfg,
+			[GPIOMUX_SUSPENDED] = &mhl_suspend_int_cfg,
 		},
 	},
 	{
 		.gpio = VALENTE_WX_GPIO_MHL_INT,
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &mhl_active_2_cfg,
-			[GPIOMUX_SUSPENDED] = &mhl_suspend_cfg,
+			[GPIOMUX_ACTIVE]    = &mhl_active_rst_cfg,
+			[GPIOMUX_SUSPENDED] = &mhl_suspend_rst_cfg,
 		},
 	},
 };
 
 
-static struct gpiomux_setting hdmi_suspend_pd_cfg = {
+static struct gpiomux_setting hdmi_suspend_pu_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_DOWN,
+	.pull = GPIOMUX_PULL_UP,
+};
+static struct gpiomux_setting hdmi_suspend_np_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_NONE,
 };
 
 static struct gpiomux_setting hdmi_active_1_cfg = {
@@ -335,9 +345,10 @@ static struct gpiomux_setting hdmi_active_1_cfg = {
 };
 
 static struct gpiomux_setting hdmi_active_2_cfg = {
-	.func = GPIOMUX_FUNC_1,
+	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_DOWN,
+	.dir= GPIOMUX_OUT_HIGH,
 };
 
 static struct msm_gpiomux_config valente_wx_hdmi_configs[] __initdata = {
@@ -345,21 +356,21 @@ static struct msm_gpiomux_config valente_wx_hdmi_configs[] __initdata = {
 		.gpio = VALENTE_WX_GPIO_HDMI_DDC_CLK,
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &hdmi_active_1_cfg,
-			[GPIOMUX_SUSPENDED] = &hdmi_suspend_pd_cfg,
+			[GPIOMUX_SUSPENDED] = &hdmi_suspend_np_cfg,
 		},
 	},
 	{
 		.gpio = VALENTE_WX_GPIO_HDMI_DDC_DATA,
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &hdmi_active_1_cfg,
-			[GPIOMUX_SUSPENDED] = &hdmi_suspend_pd_cfg,
+			[GPIOMUX_SUSPENDED] = &hdmi_suspend_np_cfg,
 		},
 	},
 	{
 		.gpio = VALENTE_WX_GPIO_HDMI_HPD,
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &hdmi_active_2_cfg,
-			[GPIOMUX_SUSPENDED] = &hdmi_suspend_pd_cfg,
+			[GPIOMUX_SUSPENDED] = &hdmi_suspend_pu_cfg,
 		},
 	},
 };
@@ -401,8 +412,10 @@ int __init valente_wx_gpiomux_init(void)
 			ARRAY_SIZE(valente_wx_audio_codec_configs));
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
+#if 0
 	msm_gpiomux_install(valente_wx_mhl_i2c_configs,
 			ARRAY_SIZE(valente_wx_mhl_i2c_configs));
+#endif
 
 	msm_gpiomux_install(valente_wx_hdmi_configs,
 			ARRAY_SIZE(valente_wx_hdmi_configs));
