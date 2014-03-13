@@ -160,7 +160,28 @@ struct pm8xxx_gpio_init {
 			PM_GPIO_STRENGTH_HIGH, \
 			PM_GPIO_FUNC_NORMAL, 0, 0)
 
+#define PM8XXX_GPIO_OUTPUT(_gpio, _val) \
+	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_OUT, PM_GPIO_OUT_BUF_CMOS, _val, \
+			PM_GPIO_PULL_NO, PM_GPIO_VIN_S4, \
+			PM_GPIO_STRENGTH_HIGH, \
+			PM_GPIO_FUNC_NORMAL, 0, 0)
+
+#define PM8XXX_GPIO_OUTPUT_VIN_L17(_gpio, _val) \
+	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_OUT, PM_GPIO_OUT_BUF_CMOS, _val, \
+			PM_GPIO_PULL_UP_30, PM_GPIO_VIN_L17, \
+			PM_GPIO_STRENGTH_LOW, \
+			PM_GPIO_FUNC_NORMAL, 0, 0)			
+
 extern unsigned int engineerid; // bit 0
+
+/* TSIF begin */
+#if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
+static struct platform_device nm32x_62x_tsi_device = {
+	.name = "nm32x_62x-tsi",
+};
+
+#endif /* defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE) */
+/* TSIF end   */
 
 #define HW_VER_ID_VIRT		(MSM_TLMM_BASE + 0x00002054)
 
@@ -219,12 +240,22 @@ enum {
 #endif
 
 #ifdef CONFIG_I2C
-
+#ifdef CONFIG_VIDEO_NMI
+#define MSM_8960_GSBI1_QUP_I2C_BUS_ID 1
+#endif
 #define MSM_8960_GSBI5_QUP_I2C_BUS_ID 5
 #define MSM_8960_GSBI4_QUP_I2C_BUS_ID 4
 #define MSM_8960_GSBI3_QUP_I2C_BUS_ID 3
 #define MSM_8960_GSBI8_QUP_I2C_BUS_ID 8
 #define MSM_8960_GSBI12_QUP_I2C_BUS_ID 12
+
+#ifdef CONFIG_VIDEO_NMI
+static struct i2c_board_info nmi625_i2c_info[] = {
+	{
+		I2C_BOARD_INFO("nmi625", 0x61),
+	},
+};
+#endif /* CONFIG_VIDEO_NMI */
 
 #endif
 
@@ -1583,9 +1614,9 @@ int cy8c_cs_reset(void)
 	pr_info("[cap]%s Enter\n", __func__);
 
 	gpio_set_value_cansleep(PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST), 1);
-	hr_msleep(5);
+	hr_msleep(1);
 	gpio_set_value_cansleep(PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST), 0);
-	hr_msleep(50);
+
 	return 0;
 }
 
@@ -1595,6 +1626,7 @@ struct cy8c_i2c_cs_platform_data cs_cy8c_data[] = {
 		.gpio_rst = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST),
 		.reset    = cy8c_cs_reset,
 		.keycode  = {KEY_BACK, KEY_HOME, KEY_APP_SWITCH},
+		.func_support = CS_FUNC_PRINTRAW,
 		.id       = {
 			.config = CS_KEY_3,
 		},
@@ -1603,7 +1635,8 @@ struct cy8c_i2c_cs_platform_data cs_cy8c_data[] = {
 		.gpio_irq = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_SENSOR_INTz),
 		.gpio_rst = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_CAP_RST),
 		.reset    = cy8c_cs_reset,
-		.keycode  = {KEY_HOME, KEY_APP_SWITCH, KEY_BACK, 0},
+		.keycode  = {KEY_BACK, KEY_HOME, KEY_APP_SWITCH, KEY_WEIBO},
+		.func_support = CS_FUNC_PRINTRAW,
 		.id       = {
 			.config = CS_KEY_4,
 		},
@@ -1620,13 +1653,13 @@ static struct i2c_board_info msm_i2c_gsbi5_info[] = {
 
 #ifdef CONFIG_FELICA_DD
 static struct pm8xxx_gpio_init felica_dtyped_pmgpios[] = {
-        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_CEN, 0),
-        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_CEN, 1),
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_PMGPIO_FELICA_CEN, 0),
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_PMGPIO_FELICA_CEN, 1),
 };
 
 static struct pm8xxx_gpio_init felica_dtypecp_pmgpios[] = {
-        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_LOCK, 0),
-        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_FELICA_LOCK, 1),
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_PMGPIO_FELICA_LOCK, 0),
+        PM8XXX_GPIO_OUTPUT_VIN_L17_FUNC(VALENTE_WX_PMGPIO_FELICA_LOCK, 1),
 };
 
 static void valente_wx_felica_dtype_suspend(void)
@@ -1655,13 +1688,13 @@ static void valente_wx_felica_resume(void)
 }
 
 static uint32_t felica_gpio_table[] = {
-	GPIO_CFG(VALENTE_WX_FEL_PON, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	GPIO_CFG(VALENTE_WX_FEL_CEN, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
-	GPIO_CFG(VALENTE_WX_FEL_RFS, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
-	GPIO_CFG(VALENTE_WX_FEL_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	GPIO_CFG(VALENTE_WX_FEL_CON, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	GPIO_CFG(VALENTE_WX_FEL_RX, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	GPIO_CFG(VALENTE_WX_FEL_TX, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_GPIO_FEL_PON, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_GPIO_FEL_CEN, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_GPIO_FEL_RFS, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_GPIO_FEL_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_GPIO_FEL_CON, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_GPIO_FEL_RX, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(VALENTE_WX_GPIO_FEL_TX, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
 };
 
 static void valente_wx_felica_setup_gpio(void)
@@ -1680,13 +1713,13 @@ static void valente_wx_felica_setup_gpio(void)
 }
 
 static struct felica_platform_data valente_wx_felica_data = {
-	.pon_gpio = VALENTE_WX_FEL_PON,
-	.cen_dtyp_d = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_FELICA_CEN),
-	.cen_dtyp_cp = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_FELICA_LOCK),
-	.cen_gpio = VALENTE_WX_FEL_CEN,
-	.rfs_gpio = VALENTE_WX_FEL_RFS,
-	.int_gpio = VALENTE_WX_FEL_INT,
-	.con_gpio = VALENTE_WX_FEL_CON,
+	.pon_gpio = VALENTE_WX_GPIO_FEL_PON,
+	.cen_dtyp_d = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_FELICA_CEN),
+	.cen_dtyp_cp = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_FELICA_LOCK),
+	.cen_gpio = VALENTE_WX_GPIO_FEL_CEN,
+	.rfs_gpio = VALENTE_WX_GPIO_FEL_RFS,
+	.int_gpio = VALENTE_WX_GPIO_FEL_INT,
+	.con_gpio = VALENTE_WX_GPIO_FEL_CON,
 	.setup_gpio = valente_wx_felica_setup_gpio,
 	.sleep_gpio = valente_wx_felica_suspend,
 	.wakeup_gpio = valente_wx_felica_resume,
@@ -1750,37 +1783,6 @@ static struct pana_gyro_platform_data pana_gyro_pdata = {
 };
 */
 
-#if 0
-static struct bma250_platform_data gsensor_bma250_platform_data = {
-	.intr = VALENTE_WX_GPIO_GSENSOR_INT,
-	.chip_layout = 1,
-};
-
-static struct akm8975_platform_data compass_platform_data = {
-	.layouts = EVN_8960M_LAYOUTS,
-	.use_pana_gyro = 1,
-};
-
-static struct i2c_board_info __initdata msm_i2c_sensor_gsbi12_info[] = {
-	{
-		I2C_BOARD_INFO(BMA250_I2C_NAME, 0x30 >> 1),
-		.platform_data = &gsensor_bma250_platform_data,
-		.irq = MSM_GPIO_TO_INT(VALENTE_WX_GPIO_GSENSOR_INT),
-	},
-	{
-		I2C_BOARD_INFO(AKM8975_I2C_NAME, 0x1A >> 1),
-		.platform_data = &compass_platform_data,
-		.irq = MSM_GPIO_TO_INT(VALENTE_WX_GPIO_COMPASS_INT),
-	},
-  /*
-	{
-		I2C_BOARD_INFO("ewtzmu2", 0xD2 >> 1),
-		.irq = MSM_GPIO_TO_INT(VALENTE_WX_GPIO_GYRO_INT),
-		.platform_data = &pana_gyro_pdata,
-	},
-  */
-};
-#else
 static struct mpu3050_platform_data mpu3050_data = {
 	.int_config = 0x10,
 	.orientation = { 1, 0, 0,
@@ -1809,7 +1811,7 @@ static struct mpu3050_platform_data mpu3050_data = {
 					  0, 0, 1 },
 	},
 };
-
+ 
 static struct i2c_board_info __initdata mpu3050_GSBI12_boardinfo[] = {
 	{
 		I2C_BOARD_INFO("mpu3050", 0xD0 >> 1),
@@ -1817,116 +1819,7 @@ static struct i2c_board_info __initdata mpu3050_GSBI12_boardinfo[] = {
 		.platform_data = &mpu3050_data,
 	},
 };
-#endif
-/*
-static struct cm3629_platform_data cm36282_TMO_EN1_pdata = {
-	.model = CAPELLA_CM36282,
-	.ps_select = CM3629_PS1_ONLY,
-	.intr = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	.levels = { 8, 10, 12, 19, 283, 3094, 5313, 7847, 10383, 65535},
-	.golden_adc = 3857,
-	.power = NULL,
-	.cm3629_slave_address = 0xC0>>1,
-	.ps1_thd_set = 0x05,
-	.ps1_thd_no_cal = 0xF1,
-	.ps1_thd_with_cal = 0x05,
-	.ps_calibration_rule = 1,
-	.ps_conf1_val = CM3629_PS_DR_1_320 | CM3629_PS_IT_1_6T |
-			CM3629_PS1_PERS_1,
-	.ps_conf2_val = CM3629_PS_ITB_1 | CM3629_PS_ITR_1 |
-			CM3629_PS2_INT_DIS | CM3629_PS1_INT_DIS,
-	.ps_conf3_val = CM3629_PS2_PROL_32,
-	.no_need_change_setting = 1,
-};
-static struct i2c_board_info i2c_CM36282_TMO_EN1_devices[] = {
-	{
-		I2C_BOARD_INFO(CM3629_I2C_NAME, 0xC0 >> 1),
-		.platform_data = &cm36282_TMO_EN1_pdata,
-		.irq =  PM8921_GPIO_IRQ(PM8921_IRQ_BASE, VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	},
-};
 
-static struct cm3629_platform_data cm36282_TMO_pdata = {
-	.model = CAPELLA_CM36282,
-	.ps_select = CM3629_PS1_ONLY,
-	.intr = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	.levels = { 8, 10, 12, 19, 283, 3094, 5313, 7847, 10383, 65535},
-	.golden_adc = 3857,
-	.power = NULL,
-	.cm3629_slave_address = 0xC0>>1,
-	.ps1_thd_set = 0x05,
-	.ps1_thd_no_cal = 0xF1,
-	.ps1_thd_with_cal = 0x05,
-	.ps_calibration_rule = 1,
-	.ps_conf1_val = CM3629_PS_DR_1_80 | CM3629_PS_IT_2T |
-			CM3629_PS1_PERS_1,
-	.ps_conf2_val = CM3629_PS_ITB_2 | CM3629_PS_ITR_1 |
-			CM3629_PS2_INT_DIS | CM3629_PS1_INT_DIS,
-	.ps_conf3_val = CM3629_PS2_PROL_32,
-};
-
-static struct i2c_board_info i2c_CM36282_TMO_devices[] = {
-	{
-		I2C_BOARD_INFO(CM3629_I2C_NAME, 0xC0 >> 1),
-		.platform_data = &cm36282_TMO_pdata,
-		.irq =  PM8921_GPIO_IRQ(PM8921_IRQ_BASE, VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	},
-};
-static struct cm3629_platform_data cm36282_XD_EN1_pdata = {
-	.model = CAPELLA_CM36282,
-	.ps_select = CM3629_PS1_ONLY,
-	.intr = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	.levels = { 8, 10, 17, 134, 257, 2827, 4779, 6989, 9198, 65535},
-	.golden_adc = 3490,
-	.power = NULL,
-	.cm3629_slave_address = 0xC0>>1,
-	.ps1_thd_set = 0x05,
-	.ps1_thd_no_cal = 0xF1,
-	.ps1_thd_with_cal = 0x05,
-	.ps_calibration_rule = 1,
-	.ps_conf1_val = CM3629_PS_DR_1_320 | CM3629_PS_IT_1_6T |
-			CM3629_PS1_PERS_1,
-	.ps_conf2_val = CM3629_PS_ITB_1 | CM3629_PS_ITR_1 |
-			CM3629_PS2_INT_DIS | CM3629_PS1_INT_DIS,
-	.ps_conf3_val = CM3629_PS2_PROL_32,
-	.no_need_change_setting = 1,
-};
-
-static struct i2c_board_info i2c_CM36282_XD_EN1_devices[] = {
-	{
-		I2C_BOARD_INFO(CM3629_I2C_NAME, 0xC0 >> 1),
-		.platform_data = &cm36282_XD_EN1_pdata,
-		.irq =  PM8921_GPIO_IRQ(PM8921_IRQ_BASE, VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	},
-};
-
-static struct cm3629_platform_data cm36282_XD_pdata = {
-	.model = CAPELLA_CM36282,
-	.ps_select = CM3629_PS1_ONLY,
-	.intr = PM8921_GPIO_PM_TO_SYS(VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	.levels = { 8, 10, 17, 134, 257, 2827, 4779, 6989, 9198, 65535},
-	.golden_adc = 3490,
-	.power = NULL,
-	.cm3629_slave_address = 0xC0>>1,
-	.ps1_thd_set = 0x05,
-	.ps1_thd_no_cal = 0xF1,
-	.ps1_thd_with_cal = 0x05,
-	.ps_calibration_rule = 1,
-	.ps_conf1_val = CM3629_PS_DR_1_80 | CM3629_PS_IT_2T |
-			CM3629_PS1_PERS_1,
-	.ps_conf2_val = CM3629_PS_ITB_2 | CM3629_PS_ITR_1 |
-			CM3629_PS2_INT_DIS | CM3629_PS1_INT_DIS,
-	.ps_conf3_val = CM3629_PS2_PROL_32,
-};
-
-static struct i2c_board_info i2c_CM36282_XD_devices[] = {
-	{
-		I2C_BOARD_INFO(CM3629_I2C_NAME, 0xC0 >> 1),
-		.platform_data = &cm36282_XD_pdata,
-		.irq =  PM8921_GPIO_IRQ(PM8921_IRQ_BASE, VALENTE_WX_PMGPIO_PROXIMITY_INTz),
-	},
-};
-*/
 static struct cm3629_platform_data cm36282_pdata = {
 	.model = CAPELLA_CM36282,
 	.ps_select = CM3629_PS1_ONLY,
@@ -2772,6 +2665,19 @@ struct platform_device msm8960_device_perf_lock = {
 };
 #endif
 
+#ifdef CONFIG_VIDEO_NMI
+static uint32_t gsbi1_gpio_table[] = {
+        GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SDA, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+        GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SCL, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+};
+
+static uint32_t gsbi1_gpio_table_gpio[] = {
+	GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SDA, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+	GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SCL, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+};
+
+#endif
+
 static uint32_t gsbi3_gpio_table[] = {
 	GPIO_CFG(VALENTE_WX_GPIO_TP_I2C_DAT, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 	GPIO_CFG(VALENTE_WX_GPIO_TP_I2C_CLK, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
@@ -2816,7 +2722,17 @@ static uint32_t gsbi12_gpio_table_gpio[] = {
 static void gsbi_qup_i2c_gpio_config(int adap_id, int config_type)
 {
 	printk(KERN_INFO "%s(): adap_id = %d, config_type = %d \n", __func__, adap_id, config_type);
+#ifdef CONFIG_VIDEO_NMI
+	if ((adap_id == MSM_8960_GSBI1_QUP_I2C_BUS_ID) && (config_type == 1)) {
+		gpio_tlmm_config(gsbi1_gpio_table[0], GPIO_CFG_ENABLE);
+		gpio_tlmm_config(gsbi1_gpio_table[1], GPIO_CFG_ENABLE);
+	}
 
+	if ((adap_id == MSM_8960_GSBI1_QUP_I2C_BUS_ID) && (config_type == 0)) {
+		gpio_tlmm_config(gsbi1_gpio_table_gpio[0], GPIO_CFG_ENABLE);
+		gpio_tlmm_config(gsbi1_gpio_table_gpio[1], GPIO_CFG_ENABLE);
+	}
+#endif
 	if ((adap_id == MSM_8960_GSBI3_QUP_I2C_BUS_ID) && (config_type == 1)) {
 		gpio_tlmm_config(gsbi3_gpio_table[0], GPIO_CFG_ENABLE);
 		gpio_tlmm_config(gsbi3_gpio_table[1], GPIO_CFG_ENABLE);
@@ -2837,18 +2753,6 @@ static void gsbi_qup_i2c_gpio_config(int adap_id, int config_type)
 		gpio_tlmm_config(gsbi4_gpio_table_gpio[0], GPIO_CFG_ENABLE);
 		gpio_tlmm_config(gsbi4_gpio_table_gpio[1], GPIO_CFG_ENABLE);
 	}
-
-  /*
-	if ((adap_id == MSM_8960_GSBI5_QUP_I2C_BUS_ID) && (config_type == 1)) {
-		gpio_tlmm_config(gsbi5_gpio_table[0], GPIO_CFG_ENABLE);
-		gpio_tlmm_config(gsbi5_gpio_table[1], GPIO_CFG_ENABLE);
-	}
-
-	if ((adap_id == MSM_8960_GSBI5_QUP_I2C_BUS_ID) && (config_type == 0)) {
-		gpio_tlmm_config(gsbi5_gpio_table_gpio[0], GPIO_CFG_ENABLE);
-		gpio_tlmm_config(gsbi5_gpio_table_gpio[1], GPIO_CFG_ENABLE);
-	}
-  */
 
 	if ((adap_id == MSM_8960_GSBI8_QUP_I2C_BUS_ID) && (config_type == 1)) {
 		gpio_tlmm_config(gsbi8_gpio_table[0], GPIO_CFG_ENABLE);
@@ -2871,11 +2775,13 @@ static void gsbi_qup_i2c_gpio_config(int adap_id, int config_type)
 	}
 }
 
-static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi3_pdata = {
-	.clk_freq = 400000,
+#ifdef CONFIG_VIDEO_NMI
+static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi1_pdata = {
+	.clk_freq = 100000,
 	.src_clk_rate = 24000000,
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
+#endif
 
 static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi4_pdata = {
 	.clk_freq = 400000,
@@ -2883,6 +2789,18 @@ static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi4_pdata = {
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
+static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi3_pdata = {
+	.clk_freq = 400000,
+	.src_clk_rate = 24000000,
+	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
+};
+/*
+static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi5_pdata = {
+	.clk_freq = 100000,
+	.src_clk_rate = 24000000,
+	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
+};
+*/
 static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi8_pdata = {
 	.clk_freq = 400000,
 	.src_clk_rate = 24000000,
@@ -2962,9 +2880,12 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm_device_saw_core1,
 	&msm8960_device_ext_5v_vreg,
 	&msm8960_device_ssbi_pmic,
+#ifdef CONFIG_VIDEO_NMI
+	&msm8960_device_qup_i2c_gsbi1,
+#endif
 	&msm8960_device_qup_i2c_gsbi3,
 	&msm8960_device_qup_i2c_gsbi4,
-	&msm8960_device_qup_i2c_gsbi5,
+/*	&msm8960_device_qup_i2c_gsbi5,*/
 	&msm8960_device_qup_i2c_gsbi8,
 	&msm8960_device_qup_spi_gsbi10,
 #ifndef CONFIG_MSM_DSPS
@@ -3098,12 +3019,19 @@ static struct platform_device *valente_wx_devices[] __initdata = {
 
 static void __init msm8960_i2c_init(void)
 {
-	msm8960_device_qup_i2c_gsbi3.dev.platform_data =
-					&msm8960_i2c_qup_gsbi3_pdata;
-
+#ifdef CONFIG_VIDEO_NMI
+	msm8960_device_qup_i2c_gsbi1.dev.platform_data =
+					&msm8960_i2c_qup_gsbi1_pdata;
+#endif
 	msm8960_device_qup_i2c_gsbi4.dev.platform_data =
 					&msm8960_i2c_qup_gsbi4_pdata;
 
+	msm8960_device_qup_i2c_gsbi3.dev.platform_data =
+					&msm8960_i2c_qup_gsbi3_pdata;
+/*
+	msm8960_device_qup_i2c_gsbi5.dev.platform_data =
+					&msm8960_i2c_qup_gsbi5_pdata;
+*/
 	msm8960_device_qup_i2c_gsbi8.dev.platform_data =
 					&msm8960_i2c_qup_gsbi8_pdata;
 
@@ -3380,64 +3308,66 @@ static struct msm_rpmrs_level msm_rpmrs_levels[] = {
 		MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT,
 		MSM_RPMRS_LIMITS(ON, ACTIVE, MAX, ACTIVE),
 		true,
-		100, 8000, 100000, 1,
+		1, 784, 180000, 100,
 	},
-#if 0
+
+	{
+		MSM_PM_SLEEP_MODE_RETENTION,
+		MSM_RPMRS_LIMITS(ON, ACTIVE, MAX, ACTIVE),
+		true,
+		415, 715, 340827, 475,
+	},
+#ifdef CONFIG_MSM_STANDALONE_POWER_COLLAPSE
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE,
 		MSM_RPMRS_LIMITS(ON, ACTIVE, MAX, ACTIVE),
 		true,
-		2000, 6000, 60100000, 3000,
+		1300, 228, 1200000, 2000,
 	},
 #endif
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(ON, GDHS, MAX, ACTIVE),
 		false,
-		4600, 5000, 60350000, 3500,
+		2000, 138, 1208400, 3200,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
-		MSM_RPMRS_LIMITS(ON, HSFS_OPEN, MAX, ACTIVE),
-		false,
-		6700, 4500, 65350000, 4800,
-	},
-	{
-		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(ON, HSFS_OPEN, ACTIVE, RET_HIGH),
 		false,
-		7400, 3500, 66600000, 5150,
+		6000, 119, 1850300, 9000,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, GDHS, MAX, ACTIVE),
 		false,
-		12100, 2500, 67850000, 5500,
+		9200, 68, 2839200, 16400,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, HSFS_OPEN, MAX, ACTIVE),
 		false,
-		14200, 2000, 71850000, 6800,
+		10300, 63, 3128000, 18200,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, HSFS_OPEN, ACTIVE, RET_HIGH),
 		false,
-		30100, 500, 75850000, 8800,
+		18000, 10, 4602600, 27000,
 	},
 
 	{
 		MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
 		MSM_RPMRS_LIMITS(OFF, HSFS_OPEN, RET_HIGH, RET_LOW),
 		false,
-		30100, 0, 76350000, 9800,
+		20000, 2, 5752000, 32000,
 	},
 };
+
 
 static struct msm_rpmrs_platform_data msm_rpmrs_data __initdata = {
 	.levels = &msm_rpmrs_levels[0],
@@ -3485,14 +3415,6 @@ struct i2c_registry {
 };
 
 static struct i2c_registry msm8960_i2c_devices[] __initdata = {
-#ifdef CONFIG_FLASHLIGHT_TPS61310
-	{
-		I2C_SURF | I2C_FFA,
-		MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-		i2c_tps61310_flashlight,
-		ARRAY_SIZE(i2c_tps61310_flashlight),
-	},
-#endif
 #ifdef CONFIG_FB_MSM_HDMI_MHL
 #ifdef CONFIG_FB_MSM_HDMI_MHL_SII9234
 	{
@@ -3502,6 +3424,14 @@ static struct i2c_registry msm8960_i2c_devices[] __initdata = {
 		ARRAY_SIZE(msm_i2c_gsbi8_mhl_sii9234_info),
 	},
 #endif
+#endif
+#ifdef CONFIG_FLASHLIGHT_TPS61310
+	{
+		I2C_SURF | I2C_FFA,
+		MSM_8960_GSBI12_QUP_I2C_BUS_ID,
+		i2c_tps61310_flashlight,
+		ARRAY_SIZE(i2c_tps61310_flashlight),
+	},
 #endif
 	{
 		I2C_SURF | I2C_FFA,
@@ -3518,9 +3448,17 @@ static struct i2c_registry msm8960_i2c_devices[] __initdata = {
 	{
 		I2C_SURF | I2C_FFA,
 		MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-		msm_i2c_gsbi5_info,
-		ARRAY_SIZE(msm_i2c_gsbi5_info),
+ 		msm_i2c_gsbi5_info,
+ 		ARRAY_SIZE(msm_i2c_gsbi5_info),
+ 	},
+#ifdef CONFIG_VIDEO_NMI
+	{
+	    I2C_SURF | I2C_FFA | I2C_FLUID,
+	    MSM_8960_GSBI1_QUP_I2C_BUS_ID,
+	    nmi625_i2c_info,
+	    ARRAY_SIZE(nmi625_i2c_info),
 	},
+#endif /* CONFIG_VIDEO_NMI */
 };
 #endif /* CONFIG_I2C */
 
@@ -3529,6 +3467,15 @@ static void __init register_i2c_devices(void)
 #ifdef CONFIG_I2C
 	u8 mach_mask = 0;
 	int i;
+
+#ifdef CONFIG_MSM_CAMERA
+	struct i2c_registry valente_wx_camera_i2c_devices = {
+		I2C_SURF | I2C_FFA | I2C_FLUID | I2C_RUMI,
+		MSM_8960_GSBI4_QUP_I2C_BUS_ID,
+		valente_wx_camera_board_info.board_info,
+		valente_wx_camera_board_info.num_i2c_board_info,
+	};
+#endif
 
 	mach_mask = I2C_SURF;
 
@@ -3541,43 +3488,28 @@ static void __init register_i2c_devices(void)
 		}
 	}
 
-	i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-			mpu3050_GSBI12_boardinfo, ARRAY_SIZE(mpu3050_GSBI12_boardinfo));
+	if (1 == board_mfg_mode())
+		if (cs_cy8c_data[1].id.config == CS_KEY_4)
+			cs_cy8c_data[1].keycode[3] = KEY_MENU;
 
-#if 0
-	if (system_rev < 3) {
-		i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-			i2c_CM36282_devices, ARRAY_SIZE(i2c_CM36282_devices));
-		pr_info("%s: cm36282 PL-sensor for XA,XB,XC, system_rev %d ",
-				 __func__, system_rev);
-	} else {
-		if (skuid & 0x1) {
-			if (engineerid  & 0x1) {
-				i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-				i2c_CM36282_TMO_EN1_devices, ARRAY_SIZE(i2c_CM36282_TMO_EN1_devices));
-				pr_info("%s: cm36282 PL-sensor TMO EN1 system_rev %d, sku %x ",
-					 __func__, system_rev, skuid);
-			} else {
-				i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-					i2c_CM36282_TMO_devices, ARRAY_SIZE(i2c_CM36282_TMO_devices));
-				pr_info("%s: cm36282 PL-sensor TMO system_rev %d, sku %x ",
-					 __func__, system_rev, skuid);
-			}
-		} else {
-			if (engineerid  & 0x1) {
-				i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-					i2c_CM36282_XD_EN1_devices, ARRAY_SIZE(i2c_CM36282_XD_EN1_devices));
-				pr_info("%s: cm36282 PL-sensor for XD and newer HW version EN1, system_rev %d ",
-					__func__, system_rev);
-			} else {
-				i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
-					i2c_CM36282_XD_devices,	ARRAY_SIZE(i2c_CM36282_XD_devices));
-				pr_info("%s: cm36282 PL-sensor for XD and newer HW version, system_rev %d ",
-					__func__, system_rev);
-			}
+	if (system_rev < 2) {
+		if (cs_cy8c_data[1].id.config == CS_KEY_4) {
+			pr_info("[cap] Setting as old printing\n");
+			cs_cy8c_data[1].keycode[0] = KEY_HOME;
+			cs_cy8c_data[1].keycode[1] = KEY_MENU;
+			cs_cy8c_data[1].keycode[2] = KEY_BACK;
+			cs_cy8c_data[1].keycode[3] = KEY_SEARCH;
 		}
 	}
+#ifdef CONFIG_MSM_CAMERA
+	/* HTC_START_Simon.Ti_Liu_20120711_IMPLEMENT_MCLK_SWITCH */
+	if (valente_wx_camera_i2c_devices.machs & mach_mask)
+		i2c_register_board_info(valente_wx_camera_i2c_devices.bus,
+				valente_wx_camera_i2c_devices.info,
+				valente_wx_camera_i2c_devices.len);
 #endif
+	i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
+			mpu3050_GSBI12_boardinfo, ARRAY_SIZE(mpu3050_GSBI12_boardinfo));
 #endif /* CONFIG_I2C */
 }
 
@@ -3650,6 +3582,153 @@ static struct spi_board_info rawchip_spi_board_info[] __initdata = {
 		.mode                   = SPI_MODE_0,
 	},
 };
+#endif
+
+#ifdef CONFIG_VIDEO_NMI
+static uint32_t oneseg_on_gpio_table[] = {
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SDA, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SCL, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_INTz, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+    GPIO_CFG(VALENTE_WX_GPIO_V_1SEG_1V2_EN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+};
+
+static uint32_t oneseg_off_gpio_table[] = {
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SDA, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SCL, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_INTz, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+    GPIO_CFG(VALENTE_WX_GPIO_V_1SEG_1V2_EN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+};
+
+static uint32_t oneseg_init_gpio_table[] = {
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SDA, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_I2C_SCL, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+    GPIO_CFG(VALENTE_WX_GPIO__1SEG_INTz, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+    GPIO_CFG(VALENTE_WX_GPIO_V_1SEG_1V2_EN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+};
+
+static struct pm8xxx_gpio_init oneseg_reset_pmgpios[] = {
+    PM8XXX_GPIO_OUTPUT(VALENTE_WX_PMGPIO__1SEG_RSTz, 0),
+    PM8XXX_GPIO_OUTPUT(VALENTE_WX_PMGPIO__1SEG_RSTz, 1),
+};
+
+static struct pm8xxx_gpio_init oneseg_enable_pmgpios[] = {
+    PM8XXX_GPIO_OUTPUT(VALENTE_WX_PMGPIO__1SEG_EN, 0),
+    PM8XXX_GPIO_OUTPUT(VALENTE_WX_PMGPIO__1SEG_EN, 1),
+};
+
+
+static struct pm8xxx_gpio_init oneseg_fm_ant_switch_pmgpios[] = {
+    PM8XXX_GPIO_OUTPUT_VIN_L17(VALENTE_WX_PMGPIO__1SEG_FM_ANT, 0),
+    PM8XXX_GPIO_OUTPUT_VIN_L17(VALENTE_WX_PMGPIO__1SEG_FM_ANT, 1),
+};
+
+static struct pm8xxx_gpio_init oneseg_lna_en_pmgpios[] = {
+    PM8XXX_GPIO_OUTPUT_VIN_L17(VALENTE_WX_PMGPIO__1SEG_LNA_EN, 0),
+    PM8XXX_GPIO_OUTPUT_VIN_L17(VALENTE_WX_PMGPIO__1SEG_LNA_EN, 1),
+};
+
+
+static struct pm8xxx_gpio_init oneseg_init_pmgpios[] __initdata = {
+    PM8XXX_GPIO_OUTPUT(VALENTE_WX_PMGPIO__1SEG_RSTz, 0),
+    PM8XXX_GPIO_OUTPUT(VALENTE_WX_PMGPIO__1SEG_EN, 0),
+};
+
+int oneseg_set_lna(int enable)
+{
+	printk(KERN_INFO "[1SEG] %s: enable: %d \n", __func__, enable);
+    if (enable)
+    {
+        pm8xxx_gpio_config(oneseg_lna_en_pmgpios[1].gpio, &oneseg_lna_en_pmgpios[1].config);
+    }
+    else
+    {
+        pm8xxx_gpio_config(oneseg_lna_en_pmgpios[0].gpio, &oneseg_lna_en_pmgpios[0].config);
+    }
+    return 0;
+}
+
+int oneseg_power(int on)
+{
+    int i, rc;
+    
+    if (on) 
+    {
+        printk(KERN_INFO "[1SEG] %s: on \n", __func__);
+        gpio_set_value(VALENTE_WX_GPIO_V_1SEG_1V2_EN, 1); 
+        for (i = 0; i < ARRAY_SIZE(oneseg_on_gpio_table); i++) 
+        {
+            rc = gpio_tlmm_config(oneseg_on_gpio_table[i], GPIO_CFG_ENABLE);
+            if (rc) 
+            {
+                printk(KERN_ERR "%s: gpio_tlmm_config(%#x)=%d\n", __func__, oneseg_on_gpio_table[i], rc);
+            }
+        }
+        
+        msleep(10);
+        pm8xxx_gpio_config(oneseg_enable_pmgpios[1].gpio, &oneseg_enable_pmgpios[1].config);
+        msleep(10);
+        pm8xxx_gpio_config(oneseg_reset_pmgpios[0].gpio, &oneseg_reset_pmgpios[0].config);
+        msleep(1);
+        pm8xxx_gpio_config(oneseg_reset_pmgpios[1].gpio, &oneseg_reset_pmgpios[1].config);
+        msleep(10);
+        
+        //Valentewx XB add
+        pm8xxx_gpio_config(oneseg_fm_ant_switch_pmgpios[1].gpio, &oneseg_fm_ant_switch_pmgpios[1].config);
+        pm8xxx_gpio_config(oneseg_lna_en_pmgpios[1].gpio, &oneseg_lna_en_pmgpios[1].config);
+		
+    } 
+    else 
+    {
+        /*Power OFF sequence*/
+        printk(KERN_INFO "[1SEG] %s: off \n", __func__);        
+        //Valentewx XB add
+        pm8xxx_gpio_config(oneseg_lna_en_pmgpios[0].gpio, &oneseg_lna_en_pmgpios[0].config);
+        pm8xxx_gpio_config(oneseg_fm_ant_switch_pmgpios[0].gpio, &oneseg_fm_ant_switch_pmgpios[0].config);
+        
+        pm8xxx_gpio_config(oneseg_enable_pmgpios[0].gpio, &oneseg_enable_pmgpios[0].config);
+        msleep(5);
+        for (i = 0; i < ARRAY_SIZE(oneseg_off_gpio_table); i++) 
+        {
+            rc = gpio_tlmm_config(oneseg_off_gpio_table[i], GPIO_CFG_DISABLE);
+            if (rc) 
+            {
+                printk(KERN_ERR "%s: gpio_tlmm_config(%#x)=%d\n", __func__, oneseg_off_gpio_table[i], rc);
+            }
+        }
+        msleep(5);
+        gpio_set_value(VALENTE_WX_GPIO_V_1SEG_1V2_EN, 0); 
+
+	}
+    return 0;
+}
+EXPORT_SYMBOL(oneseg_power);
+
+static void valente_wx_init_1seg(void)
+{
+        int i, rc;
+
+        printk(KERN_INFO "valente_wx: %s\n", __func__);
+
+
+        for (i = 0; i < ARRAY_SIZE(oneseg_init_pmgpios); i++) {
+                rc = pm8xxx_gpio_config(oneseg_init_pmgpios[i].gpio,
+                                        &oneseg_init_pmgpios[i].config);
+                if (rc)
+                        printk("%s: 1seg_init_pmgpios: rc=%d\n", __func__, rc);
+        }
+
+        /* Initialized 1SEG pins */
+        for (i = 0; i < ARRAY_SIZE(oneseg_init_gpio_table); i++) {
+                rc = gpio_tlmm_config(oneseg_init_gpio_table[i], GPIO_CFG_DISABLE);
+                if (rc) {
+                        printk(KERN_ERR
+                                   "%s: gpio_tlmm_config(%#x)=%d\n",
+                                   __func__, oneseg_init_gpio_table[i], rc);
+                }
+        }
+
+	platform_device_register(&nm32x_62x_tsi_device);
+}
 #endif
 
 static void __init valente_wx_init(void)
@@ -3733,6 +3812,10 @@ static void __init valente_wx_init(void)
 		valente_wx_add_usb_devices();
 
 	valente_wx_init_keypad();
+
+#ifdef CONFIG_VIDEO_NMI
+	valente_wx_init_1seg();
+#endif
 
 #ifdef CONFIG_FELICA_DD
 	valente_wx_init_felica();
