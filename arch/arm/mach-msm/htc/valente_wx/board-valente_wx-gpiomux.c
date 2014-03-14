@@ -197,35 +197,35 @@ static struct gpiomux_setting felica_settings[] = {
 
 static struct msm_gpiomux_config valente_wx_felica_configs[] = {
 	{
-		.gpio = VALENTE_WX_GPIO_FEL_PON,  /* PON (GPIO-25), output */
+		.gpio = VALENTE_WX_FEL_PON,  /* PON (GPIO-25), output */
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &felica_settings[1],	/* 1: O(H) NP 2MA*/
 			[GPIOMUX_SUSPENDED] = &felica_settings[0],	/* 0 : O(L) NP 2MA*/
 		},
 	},
 	{
-		.gpio = VALENTE_WX_GPIO_FEL_RFS, /* RFS (GPIO-10), input */
+		.gpio = VALENTE_WX_FEL_RFS, /* RFS (GPIO-10), input */
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &felica_settings[3],	/* 3: I(PU) 2MA*/
 			[GPIOMUX_SUSPENDED] = &felica_settings[3],	/* 3: I(PU) 2MA*/
 		},
 	},
 	{
-		.gpio = VALENTE_WX_GPIO_FEL_INT, /* INT (GPIO-24), input */
+		.gpio = VALENTE_WX_FEL_INT, /* INT (GPIO-24), input */
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &felica_settings[4],	/* 4: I(NP) 2MA*/
 			[GPIOMUX_SUSPENDED] = &felica_settings[4],	/* 4: I(NP) 2MA*/
 		},
 	},
 	{
-		.gpio = VALENTE_WX_GPIO_FEL_CON,  /* CON (GPIO-13), input */
+		.gpio = VALENTE_WX_FEL_CON,  /* CON (GPIO-13), input */
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &felica_settings[2],	/* 2: I(PD) 2MA*/
 			[GPIOMUX_SUSPENDED] = &felica_settings[2],	/* 2: I(PD) 2MA*/
 		},
 	},
 	{
-		.gpio = VALENTE_WX_GPIO_FEL_CEN,  /* CEN (GPIO-12), output */
+		.gpio = VALENTE_WX_FEL_CEN,  /* CEN (GPIO-12), output */
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &felica_settings[3],	/* 3: I(PU) 2MA*/
 			[GPIOMUX_SUSPENDED] = &felica_settings[3],	/* 3: I(PU) 2MA*/
