@@ -3395,11 +3395,22 @@ static struct htc_battery_platform_data htc_battery_pdev_data = {
 	.overload_vol_thr_mv = 4000,
 	.overload_curr_thr_ma = 0,
 	.smooth_chg_full_delay_min = 1,
+
+#ifdef CONFIG_SMB349_CHARGER
+	.icharger.name = "smb349",
+	.icharger.sw_safetytimer = 1,
+	.icharger.set_limit_charge_enable = smb349_limit_charge_enable,
+	.icharger.is_batt_charge_enable =  smb349_is_batt_charge_enable,
+	.icharger.get_attr_text = pm8921_charger_get_attr_text_with_ext_charger,
+	.icharger.enable_5v_output = smb349_enable_5v_output,
+#else
 	.icharger.name = "pm8921",
+	.icharger.sw_safetytimer = 0,
 	.icharger.set_limit_charge_enable = pm8921_limit_charge_enable,
 	.icharger.get_attr_text = pm8921_charger_get_attr_text,
-	.icharger.max_input_current = pm8921_set_hsml_target_ma,
+//	.icharger.max_input_current = pm8921_set_hsml_target_ma,
 	.icharger.enable_5v_output = NULL,
+#endif
 	.icharger.get_charging_source = pm8921_get_charging_source,
 	.icharger.get_charging_enabled = pm8921_get_charging_enabled,
 	.icharger.set_charger_enable = pm8921_charger_enable,
@@ -3417,6 +3428,7 @@ static struct htc_battery_platform_data htc_battery_pdev_data = {
 
 	.igauge.name = "pm8921",
 	.igauge.get_battery_voltage = pm8921_get_batt_voltage,
+	.igauge.set_chg_ovp = pm8921_set_chg_ovp,
 	.igauge.get_battery_current = pm8921_bms_get_batt_current,
 	.igauge.get_battery_temperature = pm8921_get_batt_temperature,
 	.igauge.get_battery_id = pm8921_get_batt_id,

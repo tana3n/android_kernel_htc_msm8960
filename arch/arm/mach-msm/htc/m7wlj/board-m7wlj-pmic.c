@@ -28,6 +28,10 @@
 #include <mach/restart.h>
 #include "devices.h"
 #include "board-m7wl.h"
+#ifdef CONFIG_SMB349_CHARGER
+#include "linux/i2c/smb349.h"
+#endif
+
 #include <asm/setup.h>
 
 extern void m7wl_pm8xxx_adc_device_register(void);
@@ -353,12 +357,32 @@ static int m7wl_pm8921_therm_mitigation[] = {
 static struct htc_charger
 smb_icharger = {
 	.name = "smb349",
+#ifdef CONFIG_SMB349_CHARGER
+	.get_charging_source = smb349_get_charging_src,
+	.is_charging_enabled = smb349_is_charging_enabled,
+	.get_charging_enabled = smb349_get_charging_enabled,
+	.set_charger_enable = smb349_enable_charging,
+	.event_notify = smb349_event_notify,
+	.set_pwrsrc_enable = smb349_enable_pwrsrc,
+	.set_pwrsrc_and_charger_enable = smb349_set_pwrsrc_and_charger_enable,
+	.set_limit_charge_enable = smb349_limit_charge_enable,
+	.is_ovp = smb349_is_charger_overvoltage,
+	.is_batt_temp_fault_disable_chg = smb349_is_batt_temp_fault_disable_chg,
+	.charger_change_notifier_register = cable_detect_register_notifier,
+	.dump_all = smb349_dump_all,
+	.get_attr_text = smb349_charger_get_attr_text,
+#endif
 };
 
 static struct ext_usb_chg_pm8921
 smb_ext_chg = {
 	.name = "smb349",
 	.ctx = NULL,
+#ifdef CONFIG_SMB349_CHARGER
+       .start_charging = smb349_start_charging,
+       .stop_charging = smb349_stop_charging,
+       .is_trickle =  smb349_is_trickle_charging,
+#endif
 	.ichg = &smb_icharger,
 };
 
