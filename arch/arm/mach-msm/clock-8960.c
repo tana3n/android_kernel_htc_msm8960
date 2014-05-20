@@ -5707,7 +5707,11 @@ static struct clk_lookup msm_clocks_8960_common[] __initdata = {
 	CLK_LOOKUP("core_clk",		gsbi1_uart_clk.c,	""),
 	CLK_LOOKUP("core_clk",		gsbi2_uart_clk.c,	""),
 	CLK_LOOKUP("core_clk",		gsbi3_uart_clk.c,	""),
+#ifdef CONFIG_GSBI4_UARTDM
+	CLK_LOOKUP("core_clk",		gsbi4_uart_clk.c, "msm_serial_hs.1"),
+#else
 	CLK_LOOKUP("core_clk",		gsbi4_uart_clk.c,	""),
+#endif
 #ifdef CONFIG_GSBI5_UARTDM
 #ifdef CONFIG_SERIAL_MSM_HS_IMC
 	CLK_LOOKUP("core_clk",		gsbi5_uart_clk.c, "msm_serial_hs_imc.1"),
@@ -5775,6 +5779,9 @@ static struct clk_lookup msm_clocks_8960_common[] __initdata = {
 	CLK_LOOKUP("iface_clk",		gsbi1_p_clk.c,		"spi_qsd.0"),
 	CLK_LOOKUP("iface_clk",		gsbi2_p_clk.c,		"qup_i2c.2"),
 	CLK_LOOKUP("iface_clk",		gsbi3_p_clk.c,		"qup_i2c.3"),
+#ifdef CONFIG_GSBI4_UARTDM
+	CLK_LOOKUP("iface_clk",     	gsbi4_p_clk.c,  "msm_serial_hs.1"),
+#endif
 	CLK_LOOKUP("iface_clk",		gsbi4_p_clk.c,		"qup_i2c.4"),
 #ifdef CONFIG_GSBI5_UARTDM
 #ifdef CONFIG_SERIAL_MSM_HS_IMC
