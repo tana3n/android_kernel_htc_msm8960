@@ -37,7 +37,7 @@
 #include <linux/jiffies.h>
 #include <mach/board.h>
 #include <mach/board_htc.h>
-#define D(x...) pr_debug(x)
+#define D(x...) pr_info(x)
 #define I2C_RETRY_COUNT 10
 #define POLLING_PROXIMITY 1
 #define MFG_MODE 1
@@ -69,9 +69,6 @@ static int avg_min_adc = 0;
 static int p_status;
 static int p_irq_status;
 static int prev_correction;
-static int ps_near;
-static int pocket_mode_flag;
-static int psensor_enable_by_touch;
 static int phone_status;
 static int oncall = 0;
 static uint8_t sensor_chipId[3] = {0};
@@ -561,7 +558,6 @@ static void report_psensor_input_event(struct cm3629_info *lpi, int interrupt_fl
 	} else {
 		val = (interrupt_flag == 2) ? 0 : 1;
 	}
-	ps_near = !val;
 
 	if (lpi->ps_debounce == 1 && lpi->mfg_mode != MFG_MODE) {
 		if (val == 0) {
@@ -2478,45 +2474,6 @@ err_unregister_ps_input_device:
 err_free_ps_input_device:
 	input_free_device(lpi->ps_input_dev);
 	return ret;
-}
-
-int pocket_detection_check(void)
-{
-	struct cm3629_info *lpi = lp_info;
-
-	if (!is_probe_success) {
-		printk("[cm3629] %s return by cm3629 probe fail\n", __func__);
-		return 0;
-	}
-	pocket_mode_flag = 1;
-
-	psensor_enable(lpi);
-	D("[cm3629] %s ps_near = %d\n", __func__, ps_near);
-	psensor_disable(lpi);
-
-	pocket_mode_flag = 0;
-	return (ps_near);
-}
-
-int psensor_enable_by_touch_driver(int on)
-{
-	struct cm3629_info *lpi = lp_info;
-
-	if (!is_probe_success) {
-		D("[PS][cm3629] %s return by cm3629 probe fail\n", __func__);
-		return 0;
-	}
-	psensor_enable_by_touch = 1;
-
-	D("[PS][cm3629] %s on:%d\n", __func__, on);
-	if (on) {
-		psensor_enable(lpi);
-	} else {
-		psensor_disable(lpi);
-	}
-
-	psensor_enable_by_touch = 0;
-	return 0;
 }
 
 static int cm3629_read_chip_id(struct cm3629_info *lpi)
