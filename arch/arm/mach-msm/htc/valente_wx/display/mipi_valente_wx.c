@@ -367,7 +367,7 @@ static int mipi_valente_wx_lcd_on(struct platform_device *pdev)
 
 	if (panel_type == PANEL_ID_VALENTE_SAMSUNG_SG ||
 			panel_type == PANEL_ID_VALENTE_SAMSUNG_SG_C2 ||
-			panel_type == PANEL_ID_VALENTE_SAMSUNG_SG_C3) {{
+			panel_type == PANEL_ID_VALENTE_SAMSUNG_SG_C3) {
 		valente_wx_send_display_cmds(cmd_on_cmds, cmd_on_cmds_count, false);
 	} else {
 		pr_err("%s: panel_type is not supported!(%d)\n",
