@@ -5035,7 +5035,7 @@ static void m7wlj_init_1seg(void)
 }
 #endif
 
-/*
+
 #define RCV_PAMP_PMGPIO 24
 static struct pm8xxx_gpio_init receiver_pmic_gpio[] = {
         PM8XXX_GPIO_INIT(RCV_PAMP_PMGPIO, PM_GPIO_DIR_OUT,
@@ -5049,7 +5049,7 @@ static void __init m7wlj_receiver_init(void)
         pm8xxx_gpio_config(receiver_pmic_gpio[0].gpio,
                         &receiver_pmic_gpio[0].config);
 }
-*/
+
 static struct i2c_registry m7wl_i2c_devices[] __initdata = {
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_3K
 	{
@@ -5351,6 +5351,7 @@ static void __init m7wl_common_init(void)
 #if defined (CONFIG_FELICA_DD) || defined (CONFIG_FELICA_CXD2235_DD)
 	m7wl_j_init_felica();
 #endif
+	m7wlj_receiver_init();
 	headset_device_register();
 	m7wl_init_keypad();
 

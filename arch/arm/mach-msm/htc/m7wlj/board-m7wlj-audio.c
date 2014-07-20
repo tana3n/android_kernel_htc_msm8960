@@ -82,8 +82,8 @@
 #define TABLA_MBHC_DEF_RLOADS 5
 
 #define HAC_PAMP_GPIO 6
-#define RCV_PAMP_GPIO 67
-#define RCV_SPK_SEL_PMGPIO 24
+#define RCV_PAMP_PMGPIO 24
+#define RCV_SPK_SEL_PMGPIO 5
 
 /* Shared channel numbers for Slimbus ports that connect APQ to MDM. */
 enum {
@@ -190,34 +190,24 @@ static void msm_enable_ext_spk_amp_gpio(u32 spk_amp_gpio)
 {
 	int ret = 0;
 
-	static uint32_t rcv_amp_gpio_table[] = {
-		GPIO_CFG(RCV_PAMP_GPIO, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	};
+	if (spk_amp_gpio == PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO)) {
 
-	if (spk_amp_gpio == RCV_PAMP_GPIO) {
-
-		ret = gpio_request(RCV_PAMP_GPIO, "AUDIO_RCV_AMP");
+		ret = gpio_request(PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO), "AUDIO_RCV_AMP");
 		if (ret) {
 			pr_err("%s: Error requesting AUDIO RCV AMP GPIO %u\n",
-				__func__, RCV_PAMP_GPIO);
+				__func__, PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO));
 			return;
 		}
 		ret = gpio_request(PM8921_GPIO_PM_TO_SYS(RCV_SPK_SEL_PMGPIO), "RCV_SPK_SEL");
 		if (ret) {
 			pr_err("%s: Error requesting RCV SPK SEL PMGPIO %u\n",
 				__func__, PM8921_GPIO_PM_TO_SYS(RCV_SPK_SEL_PMGPIO));
-			gpio_free(RCV_PAMP_GPIO);
+			gpio_free(PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO));
 			return;
 		}
-		ret = gpio_tlmm_config(rcv_amp_gpio_table[0], GPIO_CFG_DISABLE);
-		if (ret) {
-			pr_err("%s: Failed to configure Rcv Ampl"
-					" gpio %u\n", __func__, RCV_PAMP_GPIO);
-		} else {
-			pr_debug("%s: enable Rcv amp gpio\n", __func__);
-			gpio_direction_output(RCV_PAMP_GPIO, 1);
-			gpio_direction_output(PM8921_GPIO_PM_TO_SYS(RCV_SPK_SEL_PMGPIO), 1);
-		}
+		pr_debug("%s: enable Rcv amp gpio\n", __func__);
+		gpio_direction_output(PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO), 1);
+		gpio_direction_output(PM8921_GPIO_PM_TO_SYS(RCV_SPK_SEL_PMGPIO), 1);
 
 	}
 }
@@ -239,7 +229,7 @@ static void msm_ext_spk_power_amp_on(u32 spk)
 		if ((msm_rcv_pamp & RCV_AMP_POS) &&
 			(msm_rcv_pamp & RCV_AMP_NEG)) {
 
-			msm_enable_ext_spk_amp_gpio(RCV_PAMP_GPIO);
+			msm_enable_ext_spk_amp_gpio(PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO));
 			pr_debug("%s: sleeping 4 ms after turning on RCV Ampl\n", __func__);
 			usleep_range(4000, 4000);
 		}
@@ -274,8 +264,8 @@ static void msm_ext_spk_power_amp_off(u32 spk)
 		if (!msm_rcv_pamp)
 			return;
 
-		gpio_direction_output(RCV_PAMP_GPIO, 0);
-		gpio_free(RCV_PAMP_GPIO);
+		gpio_direction_output(PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO), 0);
+		gpio_free(PM8921_GPIO_PM_TO_SYS(RCV_PAMP_PMGPIO));
 		gpio_direction_output(PM8921_GPIO_PM_TO_SYS(RCV_SPK_SEL_PMGPIO), 0);
 		gpio_free(PM8921_GPIO_PM_TO_SYS(RCV_SPK_SEL_PMGPIO));
 		msm_rcv_pamp = 0;
@@ -847,7 +837,6 @@ static int msm_slim_1_rate_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-/*
 static void m7wl_audio_pmic_mpp_config(void)
 {
 	unsigned ret;
@@ -863,7 +852,6 @@ static void m7wl_audio_pmic_mpp_config(void)
 	if (ret < 0)
 		pr_err("%s:MPP_9 configuration failed\n", __func__);
 }
-*/
 
 static int msm_incall_rec_mode_get(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
@@ -2675,36 +2663,29 @@ extern unsigned skuid;
 
 static int m7_enable_digital_mic(void)
 {
-	int ret;
-
-	if ((system_rev == XA) || (system_rev == XB)) {
-		ret = 0;
-	} else if ((system_rev == XC) || (system_rev == XD)) {
-		if (((skuid & 0xFF) == 0x0B) ||
-			((skuid & 0xFF) == 0x0D) ||
-			((skuid & 0xFF) == 0x0C) ||
-			((skuid & 0xFF) == 0x0E) ||
-			((skuid & 0xFF) == 0x0F) ||
-			((skuid & 0xFF) == 0x10) ||
-			((skuid & 0xFF) == 0x11) ||
-			((skuid & 0xFF) == 0x12) ||
-			((skuid & 0xFF) == 0x13) ||
-			((skuid & 0xFF) == 0x14) ||
-			((skuid & 0xFF) == 0x15))
-			ret = 1;
-		else
-			ret = 0;
-	} else {
-		if ((skuid & 0xFFF00) == 0x34C00)
-			ret = 1;
-		else if ((skuid & 0xFFF00) == 0x38900)
-			ret = 2;
-		else
-			ret = 3;
-	}
-	pr_info("%s: skuid=0x%x, system_rev=%x return %d\n",
-			__func__, skuid, system_rev, ret);
-	return ret;
+    int ret;
+    
+    if ((system_rev == XA)||(system_rev == XB)||(system_rev == XC)){
+        if ((skuid & 0xFF) == 0x3) {
+            printk(KERN_INFO "(skuid & 0xFF) == 0x3\n");
+            ret = 1;
+        }
+        else if ((skuid & 0xFF) == 0x2) {
+            printk(KERN_INFO "(skuid & 0xFF) == 0x2\n");
+            ret = 1;
+        }
+        ret = 0;
+    }
+    else{
+        if ((skuid & 0xFFF00) == 0x35B00)
+            ret = 1;
+        else if ((skuid & 0xFFF00) == 0x38A00)
+            ret = 2;
+        else
+            ret = 3;
+    }
+    printk(KERN_INFO "m7wlj_enable_digital_mic:skuid=0x%x, system_rev=%x return %d\n", skuid, system_rev,ret);
+    return ret;
 }
 
 static void apq8064_set_q6_effect_mode(int mode)
@@ -2722,6 +2703,7 @@ static struct acoustic_ops acoustic = {
 static void htc_audio_init(void)
 {
 	acoustic_register_ops(&acoustic);
+	m7wl_audio_pmic_mpp_config();
 }
 
 static struct platform_device *msm_snd_device;
