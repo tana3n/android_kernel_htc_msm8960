@@ -4484,7 +4484,6 @@ static int synaptics_ts_resume(struct i2c_client *client)
 		}
 	}
 
-
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
         if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0 && l2w_switch == 0) {
 #endif
