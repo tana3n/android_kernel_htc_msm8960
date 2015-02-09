@@ -687,7 +687,7 @@ static struct resource resources_uart_gsbi8[] = {
 
 struct platform_device msm8960_device_uart_gsbi8 = {
 	.name	= "msm_serial_hsl",
-#ifdef CONFIG_MACH_M4_UL
+#if defined(CONFIG_MACH_M4_UL) || defined(CONFIG_MACH_ZARA)
 	.id	= 0,
 #else
 	.id	= 1,
@@ -2031,6 +2031,20 @@ static struct resource resources_qup_i2c_gsbi2[] = {
 		.end	= MSM8960_GSBI2_QUP_IRQ,
 		.flags	= IORESOURCE_IRQ,
 	},
+#ifdef CONFIG_MACH_ZARA
+	{
+		.name	= "i2c_sda",
+		.start	= 12,
+		.end	= 12,
+		.flags	= IORESOURCE_IO,
+	},
+	{
+		.name	= "i2c_clk",
+		.start	= 13,
+		.end	= 13,
+		.flags	= IORESOURCE_IO,
+	},
+#endif
 };
 
 struct platform_device msm8960_device_qup_i2c_gsbi2 = {
@@ -2099,6 +2113,20 @@ static struct resource resources_qup_i2c_gsbi8[] = {
 		.end	= GSBI8_QUP_IRQ,
 		.flags	= IORESOURCE_IRQ,
 	},
+#ifdef CONFIG_MACH_ZARA
+	{
+		.name	= "i2c_sda",
+		.start	= 36,
+		.end	= 36,
+		.flags	= IORESOURCE_IO,
+	},
+	{
+		.name	= "i2c_clk",
+		.start	= 37,
+		.end	= 37,
+		.flags	= IORESOURCE_IO,
+	},
+#endif
 };
 
 struct platform_device msm8960_device_qup_i2c_gsbi8 = {
@@ -2127,6 +2155,20 @@ static struct resource resources_qup_i2c_gsbi3[] = {
 		.end	= GSBI3_QUP_IRQ,
 		.flags	= IORESOURCE_IRQ,
 	},
+#ifdef CONFIG_MACH_ZARA
+	{
+		.name	= "i2c_sda",
+		.start	= 16,
+		.end	= 16,
+		.flags	= IORESOURCE_IO,
+	},
+	{
+		.name	= "i2c_clk",
+		.start	= 17,
+		.end	= 17,
+		.flags	= IORESOURCE_IO,
+	},
+#endif
 };
 
 struct platform_device msm8960_device_qup_i2c_gsbi3 = {
@@ -2155,6 +2197,20 @@ static struct resource resources_qup_i2c_gsbi5[] = {
 		.end	= GSBI5_QUP_IRQ,
 		.flags	= IORESOURCE_IRQ,
 	},
+#ifdef CONFIG_MACH_ZARA
+	{
+		.name	= "i2c_sda",
+		.start	= 24,
+		.end	= 24,
+		.flags	= IORESOURCE_IO,
+	},
+	{
+		.name	= "i2c_clk",
+		.start	= 25,
+		.end	= 25,
+		.flags	= IORESOURCE_IO,
+	},
+#endif
 };
 
 struct platform_device msm8960_device_qup_i2c_gsbi5 = {
@@ -2183,11 +2239,29 @@ static struct resource resources_qup_i2c_gsbi9[] = {
 		.end	= GSBI9_QUP_IRQ,
 		.flags	= IORESOURCE_IRQ,
 	},
+#ifdef CONFIG_MACH_ZARA
+	{
+		.name	= "i2c_sda",
+		.start	= 95,
+		.end	= 95,
+		.flags	= IORESOURCE_IO,
+	},
+	{
+		.name	= "i2c_clk",
+		.start	= 96,
+		.end	= 96,
+		.flags	= IORESOURCE_IO,
+	},
+#endif
 };
 
 struct platform_device msm8960_device_qup_i2c_gsbi9 = {
 	.name		= "qup_i2c",
+#ifdef CONFIG_MACH_ZARA
+	.id		= 9,
+#else
 	.id		= 0,
+#endif
 	.num_resources	= ARRAY_SIZE(resources_qup_i2c_gsbi9),
 	.resource	= resources_qup_i2c_gsbi9,
 };
