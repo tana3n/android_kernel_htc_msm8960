@@ -38,6 +38,10 @@
 #include <mach/board_htc.h>
 #include <mach/htc_restart_handler.h>
 
+#ifdef CONFIG_KEXEC_HARDBOOT
+#include <asm/kexec.h>
+#endif
+
 #include "msm_watchdog.h"
 #include "smd_private.h"
 #include "timer.h"
@@ -554,6 +558,17 @@ static int __init msm_pmic_restart_init(void)
 
 late_initcall(msm_pmic_restart_init);
 
+#ifdef CONFIG_KEXEC_HARDBOOT
+static void msm_kexec_hardboot_hook(void)
+{
+	// Set PMIC to restart-on-poweroff
+	pm8xxx_reset_pwr_off(1);
+
+	turn_off_mdm_power();
+	turn_off_qsc_power();
+}
+#endif
+
 static int __init msm_restart_init(void)
 {
 	atomic_notifier_chain_register(&panic_notifier_list, &panic_blk);
@@ -567,6 +582,10 @@ static int __init msm_restart_init(void)
 #endif
 	msm_tmr0_base = msm_timer_get_timer0_base();
 	pm_power_off = msm_power_off;
+
+#ifdef CONFIG_KEXEC_HARDBOOT
+	kexec_hardboot_hook = msm_kexec_hardboot_hook;
+#endif
 
 	return 0;
 }
