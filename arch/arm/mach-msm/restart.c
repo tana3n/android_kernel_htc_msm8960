@@ -564,8 +564,6 @@ static void msm_kexec_hardboot_hook(void)
 	// Set PMIC to restart-on-poweroff
 	pm8xxx_reset_pwr_off(1);
 
-	turn_off_mdm_power();
-	turn_off_qsc_power();
 }
 #endif
 
