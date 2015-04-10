@@ -25,7 +25,6 @@
 #include <linux/key.h>
 #include <linux/capability.h>
 #include <linux/slab.h>
-#include <linux/xattr.h>
 #include <linux/err.h>
 
 struct linux_binprm;
