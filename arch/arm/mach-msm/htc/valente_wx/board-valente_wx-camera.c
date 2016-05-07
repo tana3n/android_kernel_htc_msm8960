@@ -1362,7 +1362,7 @@ struct i2c_board_info valente_wx_camera_i2c_boardinfo[] = {
 };
 
 /* Due to OV8830 0x20 slave addr is the same 3H2 */
-struct i2c_board_info valente_wx_2nd_camera_boardinfo[]  = {
+struct i2c_board_info valente_wx_2nd_camera_i2c_boardinfo[]  = {
 #ifdef CONFIG_IMX175
 	{
 		I2C_BOARD_INFO("imx175", 0x20 >> 1),
@@ -1381,6 +1381,11 @@ struct msm_camera_board_info valente_wx_camera_board_info = {
 	.board_info = valente_wx_camera_i2c_boardinfo,
 	.num_i2c_board_info = ARRAY_SIZE(valente_wx_camera_i2c_boardinfo),
 };
+
+struct msm_camera_board_info valente_wx_camera_board_info_2nd = {
+        .board_info = valente_wx_2nd_camera_i2c_boardinfo,
+        .num_i2c_board_info = ARRAY_SIZE(valente_wx_2nd_camera_i2c_boardinfo),
+};
 #endif /* CONFIG_MSM_CAMERA */
 
 void __init valente_wx_init_camera(void)
@@ -1388,6 +1393,20 @@ void __init valente_wx_init_camera(void)
 #ifdef CONFIG_MSM_CAMERA
 	msm_gpiomux_install(valente_wx_cam_configs,
 			ARRAY_SIZE(valente_wx_cam_configs));
+
+	config_cam_id(1); 
+	msleep(2);
+
+	if (gpio_get_value(VALENTE_WX_GPIO_MAIN_CAM_ID) == 0){
+		i2c_register_board_info(MSM_8960_GSBI4_QUP_I2C_BUS_ID,
+			valente_wx_camera_board_info.board_info,
+			valente_wx_camera_board_info.num_i2c_board_info);
+	}else{ 
+		i2c_register_board_info(MSM_8960_GSBI4_QUP_I2C_BUS_ID,
+			valente_wx_camera_board_info_2nd.board_info_2nd,
+			valente_wx_camera_board_info_2nd.num_i2c_board_info_2nd);
+	}
+	config_cam_id(0); 
 
 	platform_device_register(&msm_rawchip_device);
 	platform_device_register(&msm_camera_server);
