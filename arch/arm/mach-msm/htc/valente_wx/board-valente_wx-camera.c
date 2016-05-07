@@ -1346,6 +1346,22 @@ struct platform_device valente_wx_camera_sensor_s5k6aafx = {
 };
 #endif
 
+static void config_cam_id(int status)
+{
+	static uint32_t cam_id_gpio_start[] = {
+		GPIO_CFG(VALENTE_WX_GPIO_MAIN_CAM_ID, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+	};
+
+	static uint32_t cam_id_gpio_end[] = {
+		GPIO_CFG(VALENTE_WX_GPIO_MAIN_CAM_ID, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	};
+	pr_info("config_cam_id(): status=%d\n",status);
+	if(status)
+		gpio_tlmm_config(cam_id_gpio_start[0], GPIO_CFG_ENABLE);
+	else
+		gpio_tlmm_config(cam_id_gpio_end[0], GPIO_CFG_ENABLE);
+}
+
 struct i2c_board_info valente_wx_camera_i2c_boardinfo[] = {
 #ifdef CONFIG_S5K3H2YX
 	{
@@ -1403,8 +1419,8 @@ void __init valente_wx_init_camera(void)
 			valente_wx_camera_board_info.num_i2c_board_info);
 	}else{ 
 		i2c_register_board_info(MSM_8960_GSBI4_QUP_I2C_BUS_ID,
-			valente_wx_camera_board_info_2nd.board_info_2nd,
-			valente_wx_camera_board_info_2nd.num_i2c_board_info_2nd);
+			valente_wx_camera_board_info_2nd.board_info,
+			valente_wx_camera_board_info_2nd.num_i2c_board_info);
 	}
 	config_cam_id(0); 
 
