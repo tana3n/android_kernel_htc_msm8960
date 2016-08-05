@@ -386,9 +386,7 @@ extern struct cpufreq_governor cpufreq_gov_smartmax;
 extern struct cpufreq_governor cpufreq_gov_smartass2;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_smartass2)
 #endif
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_ALUCARD)
-extern struct cpufreq_governor cpufreq_gov_alucard;
-#define CPUFREQ_DEFAULT_GOVERNOR (&cpufreq_gov_alucard)
+
 
 /*********************************************************************
  *                     FREQUENCY TABLE HELPERS                       *
