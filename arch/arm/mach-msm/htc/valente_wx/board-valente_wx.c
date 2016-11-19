@@ -3552,15 +3552,6 @@ static void __init register_i2c_devices(void)
 	u8 mach_mask = 0;
 	int i;
 
-#ifdef CONFIG_MSM_CAMERA
-	struct i2c_registry valente_wx_camera_i2c_devices = {
-		I2C_SURF | I2C_FFA | I2C_FLUID | I2C_RUMI,
-		MSM_8960_GSBI4_QUP_I2C_BUS_ID,
-		valente_wx_camera_board_info.board_info,
-		valente_wx_camera_board_info.num_i2c_board_info,
-	};
-#endif
-
 	mach_mask = I2C_SURF;
 
 	/* Run the array and install devices as appropriate */
@@ -3585,13 +3576,7 @@ static void __init register_i2c_devices(void)
 			cs_cy8c_data[1].keycode[3] = KEY_SEARCH;
 		}
 	}
-#ifdef CONFIG_MSM_CAMERA
-	/* HTC_START_Simon.Ti_Liu_20120711_IMPLEMENT_MCLK_SWITCH */
-	if (valente_wx_camera_i2c_devices.machs & mach_mask)
-		i2c_register_board_info(valente_wx_camera_i2c_devices.bus,
-				valente_wx_camera_i2c_devices.info,
-				valente_wx_camera_i2c_devices.len);
-#endif
+
 	i2c_register_board_info(MSM_8960_GSBI12_QUP_I2C_BUS_ID,
 			mpu3050_GSBI12_boardinfo, ARRAY_SIZE(mpu3050_GSBI12_boardinfo));
 #endif /* CONFIG_I2C */
