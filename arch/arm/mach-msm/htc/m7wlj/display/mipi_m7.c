@@ -899,6 +899,11 @@ static int m7_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
 
+	if (panel_type == PANEL_ID_DLXJ_SHARP_RENESAS ||
+			panel_type == PANEL_ID_DLXJ_SONY_RENESAS ||
+			panel_type == PANEL_ID_M7_SHARP_RENESAS)
+		hr_msleep(120);
+
 	mfd = platform_get_drvdata(pdev);
 	if (!mfd)
 		return -ENODEV;
